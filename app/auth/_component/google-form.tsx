@@ -1,26 +1,22 @@
 'use client';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
-import { signInWithGoogle } from '@/utils/actions/auth';
+import { signUpWithGoogleAction } from '@/utils/actions';
+import React from 'react';
+import { useFormStatus } from 'react-dom';
 
-const initialState = {
-  error: '',
-};
-
-function GoogleButton({ isPending }: { isPending: boolean }) {
+function GoogleButton() {
   const { pending } = useFormStatus();
 
   return (
     <Button
       type='submit'
       variant='ghost'
-      disabled={pending || isPending}
-      aria-disabled={pending || isPending}
-      className='w-full  flex items-center justify-center'
+      disabled={pending}
+      aria-disabled={pending}
+      className='w-full flex items-center justify-center'
     >
-      {pending || isPending ? (
+      {pending ? (
         'Loading...'
       ) : (
         <>
@@ -57,12 +53,14 @@ function GoogleButton({ isPending }: { isPending: boolean }) {
 }
 
 export default function GoogleSignInButton() {
-  const [state, formAction] = useActionState(signInWithGoogle, initialState);
+  const [state, formAction] = React.useActionState(signUpWithGoogleAction, {
+    error: null,
+  });
 
   return (
     <form action={formAction}>
-      <GoogleButton isPending={state.error === 'pending'} />
-      {state.error && state.error !== 'pending' && (
+      <GoogleButton />
+      {state?.error && (
         <p className='text-sm text-center text-red-400 mt-2'>{state.error}</p>
       )}
     </form>

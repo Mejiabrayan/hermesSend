@@ -1,9 +1,9 @@
 //To access Supabase from Server Components, Server Actions, and Route Handlers, which run only on the server.
 import { createServerClient } from '@supabase/ssr';
-import { cookies, type UnsafeUnwrappedCookies } from 'next/headers';
+import { cookies } from 'next/headers';
 
-export function createServer() {
-  const cookieStore = (cookies() as unknown as UnsafeUnwrappedCookies);
+export async function createServer() {
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,7 +22,7 @@ export function createServer() {
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
             // user sessions.
-          }
+          } 
         },
       },
     }
