@@ -31,7 +31,7 @@ export const inputStyles = `relative text-sm w-full text-neutral-200 bg-zinc-900
 
 export const dividerStyles = `relative flex items-center py-5 text-xs uppercase before:flex-1 before:border-t before:border-zinc-700 after:flex-1 after:border-t after:border-zinc-700`;
 
-export const buttonStyles = `relative text-sm w-full dark:text-neutral-200 bg-white dark:bg-gradient-to-b dark:from-zinc-950 dark:to-black px-3.5 py-2 rounded-lg shadow-input shadow-black/5 dark:shadow-black/10 
+export const buttonStyles = `relative text-sm w-full dark:text-neutral-200 bg-white dark:bg-gradient-to-b dark:from-zinc-950 dark:to-black px-3.5 py-2 rounded-lg border border-black/5 shadow-input shadow-black/5 dark:shadow-black/10 
   before:pointer-events-none focus-visible:before:opacity-100 before:opacity-0 before:absolute before:-inset-1 before:rounded-[11px] before:border before:border-blue-500 before:ring-2 before:ring-blue-500/20 before:transition
   after:pointer-events-none after:absolute after:inset-px after:rounded-[7px] after:shadow-highlight after:shadow-white/5 focus-visible:after:shadow-blue-500/100 dark:focus-visible:after:shadow-blue-500/20 after:transition
   disabled:opacity-50 disabled:cursor-not-allowed

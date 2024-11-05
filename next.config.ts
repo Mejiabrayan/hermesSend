@@ -9,7 +9,13 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'savor-moments.fly.storage.tigris.dev',
         port: '',
-        pathname: ''
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.amazonaws.com',
+        port: '',
+        pathname: '**',
       },
     ],
   },

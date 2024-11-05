@@ -1,4 +1,4 @@
-'use client';
+
 
 import Link from 'next/link';
 import { signInAction, signUpAction } from '@/utils/actions/index';
