@@ -1,6 +1,9 @@
+// This stays a server component
+
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { listObjects, getPresignedUrlForDownload } from '@/utils/s3/s3Operations';
+import { ImageUpload } from '@/components/image-upload';
 
 interface ImageData {
   url: string;
@@ -46,8 +49,8 @@ export default async function Page() {
   return (
     <div className='space-y-6'>
       <div className='flex items-center justify-between'>
-        <h1 className='text-2xl font-bold'>Your Images</h1>
-        {/* Add upload button or other actions here later */}
+        <h1 className='text-2xl font-bold italic'>Your Favorite Memories</h1>
+        <ImageUpload />
       </div>
 
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>

@@ -14,62 +14,60 @@ export const signUpAction = async (formData: FormData) => {
   const origin = (await headers()).get('origin');
 
   if (!email || !password) {
-    return { error: 'Email and password are required' };
+    return encodedRedirect('error', '/auth/sign-up', 'Email and password are required');
   }
 
-  const {
-    data: { user },
-    error: signUpError,
-  } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-      channel: 'sms',
-    },
-  });
+  try {
+    // First create the auth user
+    const {
+      data: { user },
+      error: signUpError,
+    } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${origin}/auth/callback`,
+        data: {
+          email: email,
+          display_name: email.split('@')[0],
+        }
+      },
+    });
 
-  if (signUpError) {
-    console.error(signUpError.code + ' ' + signUpError.message);
-    return encodedRedirect('error', '/auth/sign-up', signUpError.message);
-  }
+    if (signUpError) throw signUpError;
+    if (!user) throw new Error('No user returned from signup');
 
-  if (!user) {
+    // Immediately try to create the profile
+    const { error: profileError } = await supabase
+      .from('users')
+      .insert({
+        id: user.id,
+        user_email: email,
+        created_at: new Date().toISOString(),
+        display_name: email.split('@')[0],
+        photo_url: null,
+      });
+
+    if (profileError) {
+      console.error('Profile creation error:', profileError);
+      // Log the specific error for debugging
+      console.error('Full profile error:', JSON.stringify(profileError, null, 2));
+    }
+
+    return encodedRedirect(
+      'success',
+      '/auth/sign-up',
+      'Account created! Please check your email to verify your account.'
+    );
+
+  } catch (error) {
+    console.error('Signup error:', error);
     return encodedRedirect(
       'error',
       '/auth/sign-up',
-      'An error occurred during sign up.'
+      error instanceof Error ? error.message : 'An error occurred during sign up'
     );
   }
-
-  // Create user profile
-  const { error: insertError } = await supabase
-    .from('users')
-    .insert({
-      id: user.id,
-      user_email: user.email,
-      created_at: new Date().toISOString(),
-      display_name: null,
-      photo_url: null,
-    })
-    .select()
-    .single();
-
-  if (insertError) {
-    await supabase.auth.admin.deleteUser(user.id);
-    console.error('Error inserting user into users table:', insertError);
-    return encodedRedirect(
-      'error',
-      '/auth/sign-up',
-      'An error occurred during sign up. Please try again.'
-    );
-  }
-
-  return encodedRedirect(
-    'success',
-    '/auth/sign-up',
-    'Thanks for signing up! Please check your email for a verification link.'
-  );
 };
 
 export const signInAction = async (formData: FormData) => {
@@ -305,5 +303,33 @@ export const signUpWithGoogleAction = async (): Promise<GoogleAuthState> => {
   } catch (err) {
     console.error('Google sign-in error:', err);
     return { error: 'An unexpected error occurred' };
+  }
+};
+
+export const checkAuthStatus = async (): Promise<{
+  isAuthenticated: boolean;
+  error: string | null;
+}> => {
+  try {
+    const supabase = await createServer();
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error) {
+      return {
+        isAuthenticated: false,
+        error: error.message,
+      };
+    }
+
+    return {
+      isAuthenticated: !!user,
+      error: null,
+    };
+  } catch (error) {
+    console.error('Auth check error:', error);
+    return {
+      isAuthenticated: false,
+      error: 'Failed to check authentication status',
+    };
   }
 };

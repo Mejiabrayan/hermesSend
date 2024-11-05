@@ -9,16 +9,16 @@ export function FormMessage({ message }: { message: Message }) {
   if (!message) return null;
 
   return (
-    <p
+    <div
       className={cn(
-        "text-sm text-center p-2 rounded-md border",
+        "p-3 text-sm rounded-lg border",
         message.type === "error"
-          ? "text-rose-400 border-rose-400 bg-rose-900/20"
-          : "text-emerald-400 border-emerald-400 bg-emerald-900/20"
+          ? "bg-red-500/10 text-red-400 border-red-500/20"
+          : "bg-green-500/10 text-green-400 border-green-500/20"
       )}
       role="alert"
     >
       {message.message}
-    </p>
+    </div>
   );
 }

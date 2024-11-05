@@ -1,5 +1,3 @@
-
-
 import Link from 'next/link';
 import { signInAction, signUpAction } from '@/utils/actions/index';
 import { SubmitButton } from '@/components/submit-button';
@@ -20,7 +18,8 @@ interface FormProps {
 
 export default function AuthForm({ mode, message }: FormProps) {
   const action = mode === 'signin' ? signInAction : signUpAction;
-  const title = mode === 'signin' ? 'Sign in to your account' : 'Create an account';
+  const title =
+    mode === 'signin' ? 'Sign in to your account' : 'Create an account';
   const subtitle =
     mode === 'signin'
       ? 'Welcome back! Please enter your details'
@@ -41,14 +40,14 @@ export default function AuthForm({ mode, message }: FormProps) {
 
   return (
     <div className='flex items-center justify-center min-h-screen bg-[#050505]'>
-      <div 
+      <div
         className='relative w-full max-w-md p-8 space-y-6 border border-white/10 rounded-xl'
         style={{
-          background: 'linear-gradient(145deg, oklch(15% 0 0), oklch(25% 0 0), oklch(30% 0 0), oklch(25% 0 0), oklch(15% 0 0))'
+          background:
+            'linear-gradient(145deg, oklch(15% 0 0), oklch(25% 0 0), oklch(30% 0 0), oklch(25% 0 0), oklch(15% 0 0))',
         }}
       >
         <div className='flex justify-center'>
-       
           <svg
             className='w-12 h-12 text-white'
             viewBox='0 0 24 24'
@@ -62,6 +61,11 @@ export default function AuthForm({ mode, message }: FormProps) {
           <h1 className='text-2xl text-white'>{title}</h1>
           <p className='text-sm text-gray-400'>{subtitle}</p>
         </div>
+        {message && (
+          <div className='pt-2'>
+            <FormMessage message={message} />
+          </div>
+        )}
         <form className='space-y-4'>
           <div className='space-y-2'>
             <div className={`group ${inputContainerStyles}`}>
@@ -100,7 +104,7 @@ export default function AuthForm({ mode, message }: FormProps) {
               />
             </div>
           </div>
-        
+
           <div className='space-y-2 relative'>
             <SubmitButton
               pendingText={
@@ -111,7 +115,6 @@ export default function AuthForm({ mode, message }: FormProps) {
               {buttonText}
             </SubmitButton>
           </div>
-          <FormMessage message={message} />
         </form>
         <div className={dividerStyles}>
           <span className='px-2 text-zinc-400'>Or continue with</span>
@@ -119,7 +122,10 @@ export default function AuthForm({ mode, message }: FormProps) {
         <GoogleSignInButton />
         <p className='text-sm text-center text-zinc-400'>
           {alternateLink.text}{' '}
-          <Link href={alternateLink.href} className='text-blue-400 hover:underline'>
+          <Link
+            href={alternateLink.href}
+            className='text-blue-400 hover:underline'
+          >
             {alternateLink.linkText}
           </Link>
         </p>
