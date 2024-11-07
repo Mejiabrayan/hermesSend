@@ -28,7 +28,7 @@ const menuItems = [
     href: '/dashboard',
   },
   {
-    label: 'Images',
+    label: 'Generate',
     icon: ImageIcon,
     href: '/dashboard/images',
   },
@@ -61,7 +61,8 @@ const UserInfo = ({
           width={32}
           height={32}
           className="h-full w-full object-cover"
-          unoptimized
+          unoptimized={false}
+          priority
         />
       ) : (
         <User className='h-4 w-4' />

@@ -298,11 +298,11 @@ export const updateAvatarAction = async (formData: FormData) => {
     const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
     // Upload to storage
-    const { data, error: uploadError } = await supabase.storage
-      .from('avatar') // bucket name
+    const { error: uploadError } = await supabase.storage
+      .from('avatar')
       .upload(fileName, file, {
-        cacheControl: "0",
-        upsert: true,
+        cacheControl: "3600",
+        upsert: false,
       });
 
     if (uploadError) {
@@ -310,11 +310,9 @@ export const updateAvatarAction = async (formData: FormData) => {
       return { error: 'Failed to upload avatar' };
     }
 
-    // Construct the URL using environment variable
-    const imgPath = `avatar/${data?.path}`;
-    const avatarUrl = `${process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL}/${imgPath}`;
-
-    // Update user profile with new avatar URL
+    // Construct URL using the S3 endpoint pattern from your settings
+    const avatarUrl = `${process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL}/object/public/avatar/${fileName}`;
+    console.log(avatarUrl);
     const { error: updateError } = await supabase
       .from('users')
       .update({ photo_url: avatarUrl })

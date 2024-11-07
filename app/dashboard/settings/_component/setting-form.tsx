@@ -20,7 +20,8 @@ export async function SettingsForm() {
                 alt="Profile"
                 fill
                 className="object-cover"
-                unoptimized
+                unoptimized={false}
+                priority
               />
             ) : (
               <div className="h-full w-full flex items-center justify-center">
