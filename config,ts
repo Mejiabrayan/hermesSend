@@ -1,0 +1,11 @@
+const config = {
+  appName: "",
+  appDescription:
+    "",
+  domainName:
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : "our production url",
+};
+
+export default config;

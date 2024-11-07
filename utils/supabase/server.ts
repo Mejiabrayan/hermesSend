@@ -1,4 +1,3 @@
-//To access Supabase from Server Components, Server Actions, and Route Handlers, which run only on the server.
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
@@ -22,8 +21,13 @@ export async function createServer() {
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware refreshing
             // user sessions.
-          } 
+          }
         },
+      },
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
       },
     }
   );

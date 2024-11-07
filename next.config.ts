@@ -4,6 +4,7 @@ const nextConfig = {
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -17,6 +18,12 @@ const nextConfig = {
         port: '',
         pathname: '**',
       },
+      {
+        protocol: 'https',
+        hostname: 'pssblqjaacoljduzoiuu.supabase.co',
+        port: '',
+        pathname: '**',
+      }
     ],
   },
 };

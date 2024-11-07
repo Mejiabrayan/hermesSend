@@ -22,7 +22,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               
             </div>
             <Toaster />
-
           </main>
         </div>
       </ReactQueryClientProvider>

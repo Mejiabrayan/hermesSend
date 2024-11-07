@@ -8,71 +8,55 @@ import { Tables } from '@/utils/database.types';
 import { encodedRedirect } from '@/utils/encodedRedirect';
 
 export const signUpAction = async (formData: FormData) => {
-  const email = formData.get('email')?.toString();
-  const password = formData.get('password')?.toString();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
   const supabase = await createServer();
-  const origin = (await headers()).get('origin');
+  const origin = (await headers()).get("origin");
 
   if (!email || !password) {
-    return encodedRedirect('error', '/auth/sign-up', 'Email and password are required');
+    return { error: "Email and password are required" };
   }
 
-  try {
-    // First create the auth user
-    const {
-      data: { user },
-      error: signUpError,
-    } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${origin}/auth/callback`,
-        data: {
-          email: email,
-          display_name: email.split('@')[0],
-        }
-      },
-    });
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${origin}/auth/callback`,
+    },
+  });
 
-    if (signUpError) throw signUpError;
-    if (!user) throw new Error('No user returned from signup');
+  if (signUpError) {
+    console.error(signUpError.code + " " + signUpError.message);
+    return encodedRedirect("error", "/sign-up", signUpError.message);
+  }
 
-    // Immediately try to create the profile
+  // Create user profile in users table
+  if (signUpData.user) {
     const { error: profileError } = await supabase
       .from('users')
       .insert({
-        id: user.id,
-        user_email: email,
+        id: signUpData.user.id,
+        email: signUpData.user.email!,
         created_at: new Date().toISOString(),
-        display_name: email.split('@')[0],
-        photo_url: null,
+        updated_at: new Date().toISOString(),
       });
 
     if (profileError) {
-      console.error('Profile creation error:', profileError);
-      // Log the specific error for debugging
-      console.error('Full profile error:', JSON.stringify(profileError, null, 2));
+      console.error('Error creating user profile:', profileError);
+      // Still continue since auth was successful
     }
-
-    return encodedRedirect(
-      'success',
-      '/auth/sign-up',
-      'Account created! Please check your email to verify your account.'
-    );
-
-  } catch (error) {
-    console.error('Signup error:', error);
-    return encodedRedirect(
-      'error',
-      '/auth/sign-up',
-      error instanceof Error ? error.message : 'An error occurred during sign up'
-    );
   }
+
+  return encodedRedirect(
+    "success",
+    "/sign-up",
+    "Thanks for signing up! Please check your email for a verification link.",
+  );
 };
 
 export const signInAction = async (formData: FormData) => {
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
   const supabase = await createServer();
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -81,12 +65,11 @@ export const signInAction = async (formData: FormData) => {
   });
 
   if (error) {
-    return encodedRedirect('error', '/auth/sign-in', error.message);
+    return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  return redirect('/dashboard');
+  return redirect("/dashboard");
 };
-
 export const signOutAction = async () => {
   const supabase = await createServer();
   const { error } = await supabase.auth.signOut();
@@ -95,13 +78,13 @@ export const signOutAction = async () => {
     console.error('Signout error:', error);
     return encodedRedirect(
       'error',
-      '/auth/sign-in',
+      '/sign-in',
       'An error occurred during sign out.'
     );
   }
 
   revalidatePath('/', 'layout');
-  return redirect('/auth/sign-in');
+  return redirect('/sign-in');
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
@@ -113,7 +96,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   if (!email) {
     return encodedRedirect(
       'error',
-      '/auth/forgot-password',
+      '/forgot-password',
       'Email is required'
     );
   }
@@ -126,7 +109,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
     console.error(error.message);
     return encodedRedirect(
       'error',
-      '/auth/forgot-password',
+      '/forgot-password',
       'Could not reset password'
     );
   }
@@ -137,7 +120,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
 
   return encodedRedirect(
     'success',
-    '/auth/forgot-password',
+    '/forgot-password',
     'Check your email for a link to reset your password.'
   );
 };
@@ -202,7 +185,7 @@ export const getUserProfile = async (): Promise<{
 
     const { data, error } = await supabase
       .from('users')
-      .select('id, display_name, photo_url, created_at, user_email')
+      .select('*')
       .eq('id', user.id)
       .single();
 
@@ -227,12 +210,9 @@ export const getUserProfile = async (): Promise<{
   }
 };
 
-export const updateUserProfile = async (
-  updates: Partial<Tables<'users'>>
-): Promise<{
-  data: Tables<'users'> | null;
-  error: string | null;
-}> => {
+export const updateUserProfile = async (formData: FormData) => {
+  const username = formData.get('username')?.toString();
+  
   try {
     const supabase = await createServer();
     const {
@@ -241,37 +221,27 @@ export const updateUserProfile = async (
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return {
-        data: null,
-        error: authError?.message || 'User not authenticated',
-      };
+      return { error: authError?.message || 'User not authenticated' };
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('users')
-      .update(updates)
-      .eq('id', user.id)
-      .select()
-      .single();
+      .update({ username })
+      .eq('id', user.id);
 
     if (error) {
       console.error('Error updating user profile:', error);
-      return {
-        data: null,
-        error: 'Failed to update user profile',
-      };
+      return { error: 'Failed to update user profile' };
     }
 
-    return {
-      data,
-      error: null,
-    };
+    // Revalidate both the settings page and the userProfile query
+    revalidatePath('/dashboard/settings');
+    revalidatePath('/', 'layout'); // This will revalidate the entire layout including the sidebar
+    return { success: true };
+    
   } catch (error) {
     console.error('Unexpected error updating user profile:', error);
-    return {
-      data: null,
-      error: 'An unexpected error occurred',
-    };
+    return { error: 'An unexpected error occurred' };
   }
 };
 
@@ -288,6 +258,7 @@ export const signUpWithGoogleAction = async (): Promise<GoogleAuthState> => {
       provider: 'google',
       options: {
         redirectTo: `${origin}/auth/callback`,
+        scopes: 'email',
       },
     });
 
@@ -306,30 +277,60 @@ export const signUpWithGoogleAction = async (): Promise<GoogleAuthState> => {
   }
 };
 
-export const checkAuthStatus = async (): Promise<{
-  isAuthenticated: boolean;
-  error: string | null;
-}> => {
-  try {
-    const supabase = await createServer();
-    const { data: { user }, error } = await supabase.auth.getUser();
 
-    if (error) {
-      return {
-        isAuthenticated: false,
-        error: error.message,
-      };
+export const updateAvatarAction = async (formData: FormData) => {
+  try {
+    const file = formData.get("avatar") as File;
+    const supabase = await createServer();
+    
+    if (!file) {
+      return { error: 'No file provided' };
     }
 
-    return {
-      isAuthenticated: !!user,
-      error: null,
-    };
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return { error: 'User not authenticated' };
+    }
+
+    // Create unique filename
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+
+    // Upload to storage
+    const { data, error: uploadError } = await supabase.storage
+      .from('avatar') // bucket name
+      .upload(fileName, file, {
+        cacheControl: "0",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('Error uploading avatar:', uploadError);
+      return { error: 'Failed to upload avatar' };
+    }
+
+    // Construct the URL using environment variable
+    const imgPath = `avatar/${data?.path}`;
+    const avatarUrl = `${process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL}/${imgPath}`;
+
+    // Update user profile with new avatar URL
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ photo_url: avatarUrl })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('Error updating profile:', updateError);
+      return { error: 'Failed to update profile' };
+    }
+
+    revalidatePath('/dashboard/settings');
+    revalidatePath('/', 'layout');
+    return { success: true };
+
   } catch (error) {
-    console.error('Auth check error:', error);
-    return {
-      isAuthenticated: false,
-      error: 'Failed to check authentication status',
-    };
+    console.error('Unexpected error updating avatar:', error);
+    return { error: 'An unexpected error occurred' };
   }
 };

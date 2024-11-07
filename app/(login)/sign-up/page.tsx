@@ -7,7 +7,7 @@ export default async function SignUpPage({
   searchParams: Promise<{ message?: string; type?: 'error' | 'success' }>;
 }) {
   const params = await searchParams;
-  
+
   const message: Message = params.message
     ? {
         type: params.type ?? 'error',
@@ -15,5 +15,5 @@ export default async function SignUpPage({
       }
     : null;
 
-  return <AuthForm mode="signup" message={message} />;
+  return <AuthForm mode='signup' message={message} />;
 }

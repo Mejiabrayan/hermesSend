@@ -1,24 +1,24 @@
-import { cn } from "@/lib/utils";
-
-export type Message = {
-  type: "error" | "success";
-  message: string;
-} | null;
+export type Message =
+  | { success: string }
+  | { error: string }
+  | { message: string };
 
 export function FormMessage({ message }: { message: Message }) {
-  if (!message) return null;
-
   return (
-    <div
-      className={cn(
-        "p-3 text-sm rounded-lg border",
-        message.type === "error"
-          ? "bg-red-500/10 text-red-400 border-red-500/20"
-          : "bg-green-500/10 text-green-400 border-green-500/20"
+    <div className="flex flex-col gap-2 w-full max-w-md text-sm">
+      {"success" in message && (
+        <div className="text-foreground border-l-2 border-foreground px-4">
+          {message.success}
+        </div>
       )}
-      role="alert"
-    >
-      {message.message}
+      {"error" in message && (
+        <div className="text-destructive-foreground border-l-2 border-destructive-foreground px-4">
+          {message.error}
+        </div>
+      )}
+      {"message" in message && (
+        <div className="text-foreground border-l-2 px-4">{message.message}</div>
+      )}
     </div>
   );
 }
