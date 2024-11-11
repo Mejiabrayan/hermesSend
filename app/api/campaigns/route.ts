@@ -7,6 +7,7 @@ const createCampaignSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   subject: z.string().min(1, 'Subject is required'),
   content: z.string().min(1, 'Content is required'),
+  recipients: z.array(z.string()),
 });
 
 export async function POST(req: Request) {
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
     }
 
     // Create campaign
-    const { data: campaign, error } = await supabase
+    const { data: campaign, error: campaignError } = await supabase
       .from('campaigns')
       .insert({
         user_id: user.id,
@@ -44,12 +45,26 @@ export async function POST(req: Request) {
       .select()
       .single();
 
-    if (error) {
-      console.error('Error creating campaign:', error);
-      return NextResponse.json(
-        { error: 'Failed to create campaign' },
-        { status: 500 }
-      );
+    if (campaignError) {
+      throw campaignError;
+    }
+
+    // Create campaign sends for recipients
+    if (result.data.recipients.length > 0) {
+      const campaignSends = result.data.recipients.map(contactId => ({
+        campaign_id: campaign.id,
+        contact_id: contactId,
+        status: 'pending',
+        created_at: new Date().toISOString(),
+      }));
+
+      const { error: sendsError } = await supabase
+        .from('campaign_sends')
+        .insert(campaignSends);
+
+      if (sendsError) {
+        throw sendsError;
+      }
     }
 
     revalidatePath('/dashboard/campaigns');

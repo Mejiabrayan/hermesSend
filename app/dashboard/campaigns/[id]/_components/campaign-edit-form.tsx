@@ -3,22 +3,30 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Save, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Tables } from '@/utils/database.types';
+import { RichTextEditor } from '../../_components/rich-text-editor';
+import { RecipientSelector } from '../../_components/recipient-selector';
 
 interface CampaignEditFormProps {
-  campaign: Tables<'campaigns'>;
+  campaign: Tables<'campaigns'> & {
+    campaign_sends?: {
+      contact_id: string;
+    }[];
+  };
   onCancelAction: () => void;
 }
 
 export function CampaignEditForm({ campaign, onCancelAction }: CampaignEditFormProps) {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState(campaign.content);
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>(
+    campaign.campaign_sends?.map(send => send.contact_id) || []
+  );
   const { toast } = useToast();
   const router = useRouter();
 
@@ -34,6 +42,7 @@ export function CampaignEditForm({ campaign, onCancelAction }: CampaignEditFormP
           name: formData.get('name'),
           subject: formData.get('subject'),
           content: content,
+          recipients: selectedRecipients,
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -88,6 +97,16 @@ export function CampaignEditForm({ campaign, onCancelAction }: CampaignEditFormP
                 required 
               />
             </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Recipients
+              </label>
+              <RecipientSelector
+                selectedRecipients={selectedRecipients}
+                onRecipientsChange={setSelectedRecipients}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -101,13 +120,9 @@ export function CampaignEditForm({ campaign, onCancelAction }: CampaignEditFormP
             </TabsList>
             
             <TabsContent value="write">
-              <Textarea 
-                id="content" 
-                name="content" 
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="min-h-[400px]"
-                required 
+              <RichTextEditor 
+                content={content}
+                onChangeAction={setContent}
               />
             </TabsContent>
             

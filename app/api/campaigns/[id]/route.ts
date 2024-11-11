@@ -7,15 +7,17 @@ const updateCampaignSchema = z.object({
   name: z.string().min(1),
   subject: z.string().min(1),
   content: z.string().min(1),
+  recipients: z.array(z.string()).optional(),
 });
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createServer();
     const { data: { user } } = await supabase.auth.getUser();
+    const { id } = await params;
     
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -36,7 +38,7 @@ export async function PATCH(
     const { data: campaign } = await supabase
       .from('campaigns')
       .select('id, status')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
       .single();
 
@@ -54,25 +56,50 @@ export async function PATCH(
       );
     }
 
-    // Update campaign
-    const { error } = await supabase
+    // Update campaign using the already verified user.id
+    const { error: campaignError } = await supabase
       .from('campaigns')
       .update({
-        ...result.data,
+        name: result.data.name,
+        subject: result.data.subject,
+        content: result.data.content,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id);
 
-    if (error) {
-      console.error('Error updating campaign:', error);
-      return NextResponse.json(
-        { error: 'Failed to update campaign' },
-        { status: 500 }
-      );
+    if (campaignError) {
+      throw campaignError;
     }
 
-    revalidatePath(`/dashboard/campaigns/${params.id}`);
+    // Update recipients if provided
+    if (result.data.recipients) {
+      // First, remove all existing campaign_sends
+      await supabase
+        .from('campaign_sends')
+        .delete()
+        .eq('campaign_id', id);
+
+      // Then, insert new campaign_sends
+      if (result.data.recipients.length > 0) {
+        const campaignSends = result.data.recipients.map(contactId => ({
+          campaign_id: id,
+          contact_id: contactId,
+          status: 'pending',
+          created_at: new Date().toISOString(),
+        }));
+
+        const { error: sendsError } = await supabase
+          .from('campaign_sends')
+          .insert(campaignSends);
+
+        if (sendsError) {
+          throw sendsError;
+        }
+      }
+    }
+
+    revalidatePath(`/dashboard/campaigns/${id}`);
     return NextResponse.json({ 
       success: true,
       message: 'Campaign updated successfully'
@@ -131,6 +158,50 @@ export async function DELETE(
       success: true,
       message: 'Campaign deleted successfully'
     });
+
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return NextResponse.json(
+      { error: 'An unexpected error occurred' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const supabase = await createServer();
+    const { data: { user } } = await supabase.auth.getUser();
+    const { id } = await params;
+    
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: campaign, error } = await supabase
+      .from('campaigns')
+      .select(`
+        *,
+        campaign_sends (
+          id,
+          contact_id
+        )
+      `)
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Campaign not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ campaign });
 
   } catch (error) {
     console.error('Unexpected error:', error);
