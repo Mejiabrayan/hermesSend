@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,12 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Plus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export function AddContactDialog() {
   const [open, setOpen] = useState(false);
@@ -29,32 +29,31 @@ export function AddContactDialog() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const response = await fetch("/api/contacts", {
-        method: "POST",
+      const response = await fetch('/api/contacts', {
+        method: 'POST',
         body: JSON.stringify({
-          email: formData.get("email"),
-          name: formData.get("name"),
+          email: formData.get('email'),
+          name: formData.get('name'),
         }),
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       });
 
-      if (!response.ok) throw new Error("Failed to add contact");
+      if (!response.ok) throw new Error('Failed to add contact');
 
       toast({
-        title: "Contact added",
-        description: "The contact has been added successfully.",
+        title: 'Contact added',
+        description: 'The contact has been added successfully.',
       });
-      
+
       setOpen(false);
       router.refresh(); // Refresh the page to show new contact
-      
-    } catch (error) {
+    } catch  {
       toast({
-        title: "Error",
-        description: "Failed to add contact. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to add contact. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -65,7 +64,7 @@ export function AddContactDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="w-4 h-4 mr-2" />
+          <Plus className='w-4 h-4 mr-2' />
           Add Contact
         </Button>
       </DialogTrigger>
@@ -77,40 +76,36 @@ export function AddContactDialog() {
               Add a new contact to your mailing list.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+          <div className='space-y-4 py-4'>
+            <div className='space-y-2'>
+              <Label htmlFor='email'>Email</Label>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="email@example.com"
+                id='email'
+                name='email'
+                type='email'
+                placeholder='email@example.com'
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="John Doe"
-              />
+            <div className='space-y-2'>
+              <Label htmlFor='name'>Name</Label>
+              <Input id='name' name='name' placeholder='John Doe' />
             </div>
           </div>
           <DialogFooter>
             <Button
-              type="button"
-              variant="outline"
+              type='button'
+              variant='outline'
               onClick={() => setOpen(false)}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Contact"}
+            <Button type='submit' disabled={loading}>
+              {loading ? 'Adding...' : 'Add Contact'}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
-} 
+}
