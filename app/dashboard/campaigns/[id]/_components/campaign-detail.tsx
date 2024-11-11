@@ -252,7 +252,7 @@ export function CampaignDetail({ campaign }: { campaign: CampaignWithSends }) {
 
       <SendCampaignDialog
         open={showSendDialog}
-        onOpenChange={setShowSendDialog}
+        onOpenChangeAction={setShowSendDialog}
         campaignId={campaign.id}
         campaignName={campaign.name}
         recipientCount={campaign.campaign_sends?.length || 0}

@@ -16,7 +16,7 @@ import { Send } from 'lucide-react';
 
 interface SendCampaignDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChangeAction: (open: boolean) => void;
   campaignId: string;
   campaignName: string;
   recipientCount?: number;
@@ -27,15 +27,16 @@ export function SendCampaignDialog({
   onOpenChangeAction,
   campaignId,
   campaignName,
+  recipientCount: initialRecipientCount,
 }: SendCampaignDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [recipientCount, setRecipientCount] = useState(0);
+  const [recipientCount, setRecipientCount] = useState(initialRecipientCount || 0);
   const { toast } = useToast();
   const router = useRouter();
 
-  // Fetch recipient count when dialog opens
+  // Fetch recipient count when dialog opens (if not provided via props)
   useEffect(() => {
-    if (open) {
+    if (open && !initialRecipientCount) {
       const fetchRecipients = async () => {
         try {
           const response = await fetch(`/api/campaigns/${campaignId}`);
@@ -49,7 +50,7 @@ export function SendCampaignDialog({
       };
       fetchRecipients();
     }
-  }, [open, campaignId]);
+  }, [open, campaignId, initialRecipientCount]);
 
   const handleSend = async () => {
     setLoading(true);
@@ -79,7 +80,7 @@ export function SendCampaignDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChangeAction}>
+    <Dialog open={open} onOpenChange={onOpenChangeAction}>  
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Send Campaign</DialogTitle>
