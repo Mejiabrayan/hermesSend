@@ -3,11 +3,14 @@ import { EmailService } from '@/utils/email/emailService';
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 
+type Params = Promise<{ id: string }>;
+
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Params }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createServer();
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -19,7 +22,7 @@ export async function POST(
     const { data: campaign } = await supabase
       .from('campaigns')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
       .single();
 
@@ -34,12 +37,12 @@ export async function POST(
     await supabase
       .from('campaigns')
       .update({ status: 'sending', updated_at: new Date().toISOString() })
-      .eq('id', params.id);
+      .eq('id', id);
 
     // Send campaign
-    await EmailService.sendCampaign(params.id);
+    await EmailService.sendCampaign(id);
 
-    revalidatePath(`/dashboard/campaigns/${params.id}`);
+    revalidatePath(`/dashboard/campaigns/${id}`);
     return NextResponse.json({ 
       success: true,
       message: 'Campaign resent successfully'
