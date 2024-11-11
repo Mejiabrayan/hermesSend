@@ -1,14 +1,9 @@
 import { signInAction } from "@/utils/actions";
-import { FormMessage } from "@/components/form-message";
+import { FormMessage, type Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-
-interface Message {
-  type: 'error' | 'success';
-  message: string;
-}
 
 export default async function SignIn(props: {
   searchParams: Promise<{ type?: string; message?: string }>;
@@ -16,12 +11,12 @@ export default async function SignIn(props: {
   const params = await props.searchParams;
   
   // Handle the null case with optional chaining and type guard
-  const message: Message | undefined = params.message 
+  const message: Message | null = params.message 
     ? {
         type: (params.type as 'error' | 'success') ?? 'error',
         message: params.message,
       }
-    : undefined;
+    : null;
 
   return (
     <>

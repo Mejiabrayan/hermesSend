@@ -1,24 +1,26 @@
-export type Message =
-  | { success: string }
-  | { error: string }
-  | { message: string };
+interface Message {
+  type: 'error' | 'success';
+  message: string;
+}
 
-export function FormMessage({ message }: { message: Message }) {
+interface FormMessageProps {
+  message?: Message | null;
+}
+
+export function FormMessage({ message }: FormMessageProps) {
+  if (!message) return null;
+
   return (
-    <div className="flex flex-col gap-2 w-full max-w-md text-sm">
-      {"success" in message && (
-        <div className="text-foreground border-l-2 border-foreground px-4">
-          {message.success}
-        </div>
-      )}
-      {"error" in message && (
-        <div className="text-destructive-foreground border-l-2 border-destructive-foreground px-4">
-          {message.error}
-        </div>
-      )}
-      {"message" in message && (
-        <div className="text-foreground border-l-2 px-4">{message.message}</div>
-      )}
+    <div
+      className={`p-3 rounded-md text-sm ${
+        message.type === 'error'
+          ? 'bg-destructive/15 text-destructive'
+          : 'bg-emerald-500/15 text-emerald-500'
+      }`}
+    >
+      {message.message}
     </div>
   );
 }
+
+export type { Message };
