@@ -1,9 +1,10 @@
-import { getUserProfile, updateUserProfile, updateAvatarAction } from '@/utils/actions';
+import { getUserProfile, updateAvatarAction } from '@/utils/actions';
 import { SubmitButton } from '@/components/submit-button';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User } from 'lucide-react';
 import Image from 'next/image';
+import { UsernameForm } from './username-form';
 
 export async function SettingsForm() {
   const { data } = await getUserProfile();
@@ -53,37 +54,18 @@ export async function SettingsForm() {
 
         <div className="border-t" />
 
-        {/* Profile Information */}
-        <form action={updateUserProfile} className='space-y-4'>
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
-            <div className="flex gap-2">
-              <Input
-                id="username"
-                name="username"
-                defaultValue={data?.username || ''}
-                required
-                minLength={2}
-              />
-              <SubmitButton
-                size="sm"
-                pendingText='Saving...'
-              >
-                Save
-              </SubmitButton>
-            </div>
-          </div>
+        {/* Replace the username form with the new client component */}
+        <UsernameForm initialUsername={data?.username || ''} />
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              defaultValue={data?.email || ''}
-              disabled
-            />
-          </div>
-        </form>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            defaultValue={data?.email || ''}
+            disabled
+          />
+        </div>
       </div>
 
       {/* Preferences Section */}

@@ -311,7 +311,7 @@ export const updateAvatarAction = async (formData: FormData) => {
     }
 
     // Construct URL using the S3 endpoint pattern from your settings
-    const avatarUrl = `${process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL}/object/public/avatar/${fileName}`;
+    const avatarUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/s3/object/public/avatar/${fileName}`;
     console.log(avatarUrl);
     const { error: updateError } = await supabase
       .from('users')

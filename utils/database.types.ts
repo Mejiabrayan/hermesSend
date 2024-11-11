@@ -9,6 +9,168 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      campaign_analytics: {
+        Row: {
+          campaign_id: string
+          clicked_at: string | null
+          contact_id: string
+          created_at: string
+          id: string
+          opened_at: string | null
+        }
+        Insert: {
+          campaign_id: string
+          clicked_at?: string | null
+          contact_id: string
+          created_at?: string
+          id?: string
+          opened_at?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          clicked_at?: string | null
+          contact_id?: string
+          created_at?: string
+          id?: string
+          opened_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_analytics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_analytics_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_sends: {
+        Row: {
+          campaign_id: string
+          contact_id: string
+          created_at: string
+          id: string
+          message_id: string | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          campaign_id: string
+          contact_id: string
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          campaign_id?: string
+          contact_id?: string
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_sends_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_sends_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          clicks_count: number | null
+          content: string
+          created_at: string
+          id: string
+          name: string
+          opens_count: number | null
+          sent_count: number | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clicks_count?: number | null
+          content: string
+          created_at?: string
+          id?: string
+          name: string
+          opens_count?: number | null
+          sent_count?: number | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clicks_count?: number | null
+          content?: string
+          created_at?: string
+          id?: string
+          name?: string
+          opens_count?: number | null
+          sent_count?: number | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          last_emailed_at: string | null
+          name: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          last_emailed_at?: string | null
+          name?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          last_emailed_at?: string | null
+          name?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string | null
@@ -41,7 +203,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      set_current_user_id: {
+        Args: {
+          user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

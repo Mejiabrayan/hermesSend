@@ -24,21 +24,6 @@ export default async function Home() {
           </div>
         </div>
       </nav>
-      {/* <div className='bg-gradient-to-r from-primary to-secondary-foreground text-transparent bg-clip-text relative'>
-          <h1 className='text-9xl font-bold text-center md:text-[300px]'>
-            The Setup
-          </h1>
-        </div>
-        <div className='flex justify-center items-center relative md:mt-[-70px]'>
-          <Image
-            src={'/assets/preview.png'}
-            alt='banner image'
-            height={1200}
-            width={1200}
-            className='rounded-tl-2xl rounded-tr-2xl border-2 border-muted -z-10'
-          />
-          <div className='bottom-0 top-[50%] bg-gradient-to-t dark:from-background left-0 right-0 absolute z-10'></div>
-        </div> */}
 
       <div className='relative isolate px-6 pt-14 lg:px-8'>
         <div className='mx-auto max-w-3xl py-32 sm:py-48 lg:py-56'>
