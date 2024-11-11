@@ -24,7 +24,7 @@ interface SendCampaignDialogProps {
 
 export function SendCampaignDialog({
   open,
-  onOpenChange,
+  onOpenChangeAction,
   campaignId,
   campaignName,
 }: SendCampaignDialogProps) {
@@ -61,12 +61,12 @@ export function SendCampaignDialog({
       if (!response.ok) throw new Error('Failed to send campaign');
 
       toast({
-        title: 'Campaign sending',
+        title: 'Campaign sending',    
         description: 'Your campaign is being sent to all recipients.',
       });
       
       router.refresh();
-      onOpenChange(false);
+      onOpenChangeAction(false);
     } catch {
       toast({
         title: 'Error',
@@ -79,12 +79,12 @@ export function SendCampaignDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Send Campaign</DialogTitle>
           <DialogDescription>
-            Are you sure you want to send "{campaignName}" to {recipientCount} recipients? This action cannot be undone.
+            Are you sure you want to send &quot;{campaignName}&quot; to {recipientCount} recipients? This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
 
@@ -106,8 +106,8 @@ export function SendCampaignDialog({
 
         <DialogFooter>
           <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
+            variant='outline'
+            onClick={() => onOpenChangeAction(false)}
             disabled={loading}
           >
             Cancel
