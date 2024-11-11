@@ -8,14 +8,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 interface DeleteCampaignDialogProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChangeAction: (open: boolean) => void;
   campaignId: string;
   campaignName: string;
   onSuccess?: () => void;
@@ -23,7 +23,7 @@ interface DeleteCampaignDialogProps {
 
 export function DeleteCampaignDialog({
   open,
-  onOpenChange,
+  onOpenChangeAction,
   campaignId,
   campaignName,
   onSuccess,
@@ -45,11 +45,11 @@ export function DeleteCampaignDialog({
         title: 'Campaign deleted',
         description: 'The campaign has been deleted successfully.',
       });
-      
+
       onSuccess?.();
       router.refresh();
-      onOpenChange(false);
-      
+      onOpenChangeAction(false);
+
       // If we're on the campaign detail page, redirect to the campaigns list
       if (window.location.pathname.includes(campaignId)) {
         router.push('/dashboard/campaigns');
@@ -66,24 +66,25 @@ export function DeleteCampaignDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete Campaign</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete "{campaignName}"? This action cannot be undone.
+            Are you sure you want to delete &quot;{campaignName}&quot;? This
+            action cannot be undone.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
+            variant='outline'
+            onClick={() => onOpenChangeAction(false)}
             disabled={loading}
           >
             Cancel
           </Button>
           <Button
-            variant="destructive"
+            variant='destructive'
             onClick={handleDelete}
             disabled={loading}
           >
@@ -93,4 +94,4 @@ export function DeleteCampaignDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

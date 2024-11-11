@@ -260,7 +260,7 @@ export function CampaignDetail({ campaign }: { campaign: CampaignWithSends }) {
 
       <DeleteCampaignDialog
         open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
+        onOpenChangeAction={setShowDeleteDialog}
         campaignId={campaign.id}
         campaignName={campaign.name}
       />

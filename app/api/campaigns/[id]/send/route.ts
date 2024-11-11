@@ -67,7 +67,7 @@ export async function POST(
       );
     }
 
-    // Prepare batch emails with verified domain
+  
     const emails = (campaign as Campaign).campaign_sends.map((send) => ({
       from: 'brayanmejia@brayancodes.com',
       to: send.contacts.email,
