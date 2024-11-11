@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { DataTableViewOptions } from "./data-table-view-options";
+import { useQueryState, parseAsString } from 'nuqs';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -13,6 +14,13 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
+  const [search, setSearch] = useQueryState('search', parseAsString.withDefault(''));
+
+  const handleSearch = (value: string) => {
+    setSearch(value || null);
+    table.getColumn("email")?.setFilterValue(value);
+  };
+
   const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
@@ -20,16 +28,17 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-1 items-center space-x-2">
         <Input
           placeholder="Filter emails..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
-          }
+          value={search || ''}
+          onChange={(event) => handleSearch(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
         {isFiltered && (
           <Button
             variant="ghost"
-            onClick={() => table.resetColumnFilters()}
+            onClick={() => {
+              table.resetColumnFilters();
+              setSearch(null);
+            }}
             className="h-8 px-2 lg:px-3"
           >
             Reset

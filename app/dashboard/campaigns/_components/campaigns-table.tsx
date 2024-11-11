@@ -17,6 +17,17 @@ import { formatDistanceToNow } from 'date-fns';
 import { BulkActions } from './bulk-actions';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tables } from '@/utils/database.types';
+import { useCampaignFilters } from '@/hooks/use-campaign-filters';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from '@/components/ui/button';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 
 // Helper function to get status badge styling
 function getStatusBadge(status: string) {
@@ -40,8 +51,22 @@ interface CampaignsTableProps {
   campaigns: Tables<'campaigns'>[];
 }
 
-export function CampaignsTable({ campaigns }: CampaignsTableProps) {
+export function CampaignsTable({ campaigns: initialCampaigns }: { campaigns: Campaign[] }) {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [{ status, search, sort, order }, setFilters] = useCampaignFilters();
+
+  // Filter campaigns based on URL state
+  const campaigns = initialCampaigns.filter(campaign => {
+    if (status !== 'all' && campaign.status !== status) return false;
+    if (search && !campaign.name.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  }).sort((a, b) => {
+    const modifier = order === 'asc' ? 1 : -1;
+    if (sort === 'name') {
+      return a.name.localeCompare(b.name) * modifier;
+    }
+    return (new Date(a[sort]).getTime() - new Date(b[sort]).getTime()) * modifier;
+  });
 
   const handleRowSelect = (id: string, selected: boolean) => {
     setSelectedRows(prev => 
@@ -56,13 +81,58 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
   };
 
   return (
-    <>
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="flex items-center gap-4">
+        <Input
+          placeholder="Search campaigns..."
+          value={search}
+          onChange={(e) => setFilters({ search: e.target.value || null })}
+          className="max-w-xs"
+        />
+        <Select
+          value={status}
+          onValueChange={(value) => setFilters({ status: value })}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="sending">Sending</SelectItem>
+            <SelectItem value="sent">Sent</SelectItem>
+            <SelectItem value="failed">Failed</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={sort}
+          onValueChange={(value) => setFilters({ sort: value })}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="created_at">Created Date</SelectItem>
+            <SelectItem value="name">Name</SelectItem>
+            <SelectItem value="updated_at">Last Updated</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setFilters({ order: order === 'asc' ? 'desc' : 'asc' })}
+        >
+          {order === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+        </Button>
+      </div>
+
       <BulkActions 
         selectedRows={selectedRows} 
         onSuccess={() => setSelectedRows([])}
       />
 
-      <div className="border rounded-lg">
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -132,6 +202,6 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
           </TableBody>
         </Table>
       </div>
-    </>
+    </div>
   );
 } 
