@@ -24,15 +24,22 @@ import { DeleteCampaignDialog } from '../../_components/delete-campaign-dialog';
 import { SendCampaignDialog } from '../../_components/send-campaign-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
+import { useQueryStates } from 'nuqs';
+import { parseAsString } from 'nuqs';
 
 export function CampaignDetail({ campaign }: { campaign: CampaignWithSends }) {
   const [isEditing, setIsEditing] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [{ recipientFilter }, setQueryStates] = useQueryStates({
+    recipientFilter: parseAsString.withDefault(''),
+  }, {
+    history: 'replace',
+    shallow: true,
+  });
 
   const filteredRecipients = campaign.campaign_sends?.filter(send => {
-    const searchLower = searchQuery.toLowerCase();
+    const searchLower = recipientFilter.toLowerCase();
     return (
       send.contacts?.email.toLowerCase().includes(searchLower) ||
       (send.contacts?.name?.toLowerCase() || '').includes(searchLower)
@@ -210,8 +217,8 @@ export function CampaignDetail({ campaign }: { campaign: CampaignWithSends }) {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search recipients..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={recipientFilter}
+                  onChange={(e) => setQueryStates({ recipientFilter: e.target.value })}
                   className="pl-8"
                 />
               </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,13 +12,21 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { RichTextEditor } from '../_components/rich-text-editor';
 import { RecipientSelector } from '../_components/recipient-selector';
+import { useQueryStates } from 'nuqs';
+import { parseAsString } from 'nuqs';
 
-export default function NewCampaign() {
+function NewCampaignForm() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState('');
   const router = useRouter();
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [{ step }, setStep] = useQueryStates({
+    step: parseAsString.withDefault('write'),
+  }, {
+    history: 'replace',
+    shallow: true,
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -123,7 +132,7 @@ export default function NewCampaign() {
 
         <Card>
           <CardContent className="pt-6">
-            <Tabs defaultValue="write">
+            <Tabs value={step} onValueChange={(value) => setStep({ step: value })}>
               <TabsList className="mb-4">
                 <TabsTrigger value="write">Write</TabsTrigger>
                 <TabsTrigger value="preview">Preview</TabsTrigger>
@@ -161,5 +170,13 @@ export default function NewCampaign() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function NewCampaignPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <NewCampaignForm />
+    </Suspense>
   );
 } 

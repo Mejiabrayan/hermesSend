@@ -26,7 +26,7 @@ export function SendButton({ campaignId, campaignName, recipientCount = 0 }: Sen
 
       <SendCampaignDialog
         open={showSendDialog}
-        onOpenChange={setShowSendDialog}
+        onOpenChangeAction={setShowSendDialog}
         campaignId={campaignId}
         campaignName={campaignName}
         recipientCount={recipientCount}

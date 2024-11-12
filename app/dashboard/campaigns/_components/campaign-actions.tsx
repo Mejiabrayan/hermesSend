@@ -54,7 +54,7 @@ export function CampaignActions({ campaignId, campaignName }: CampaignActionsPro
 
       <DeleteCampaignDialog
         open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
+        onOpenChangeAction={setShowDeleteDialog}
         campaignId={campaignId}
         campaignName={campaignName}
       />
