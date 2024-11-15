@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ interface SendCampaignDialogProps {
   onOpenChangeAction: (open: boolean) => void;
   campaignId: string;
   campaignName: string;
-  recipientCount?: number;
+  recipientCount: number;
 }
 
 export function SendCampaignDialog({
@@ -27,51 +27,46 @@ export function SendCampaignDialog({
   onOpenChangeAction,
   campaignId,
   campaignName,
-  recipientCount: initialRecipientCount,
+  recipientCount,
 }: SendCampaignDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [recipientCount, setRecipientCount] = useState(initialRecipientCount || 0);
   const { toast } = useToast();
   const router = useRouter();
 
-  // Fetch recipient count when dialog opens (if not provided via props)
-  useEffect(() => {
-    if (open && !initialRecipientCount) {
-      const fetchRecipients = async () => {
-        try {
-          const response = await fetch(`/api/campaigns/${campaignId}`);
-          const data = await response.json();
-          if (data.campaign?.campaign_sends) {
-            setRecipientCount(data.campaign.campaign_sends.length);
-          }
-        } catch (error) {
-          console.error('Failed to fetch recipients:', error);
-        }
-      };
-      fetchRecipients();
-    }
-  }, [open, campaignId, initialRecipientCount]);
-
   const handleSend = async () => {
+    if (recipientCount === 0) {
+      toast({
+        title: 'Error',
+        description: 'No recipients selected',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch(`/api/campaigns/${campaignId}/send`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
 
-      if (!response.ok) throw new Error('Failed to send campaign');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
 
       toast({
-        title: 'Campaign sending',    
-        description: 'Your campaign is being sent to all recipients.',
+        title: 'Campaign Sent',    
+        description: `Successfully sent to ${data.successfulSends} recipients${
+          data.failedSends > 0 ? `, ${data.failedSends} failed` : ''
+        }`,
       });
       
       router.refresh();
       onOpenChangeAction(false);
-    } catch {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to send campaign',
+        description: error instanceof Error ? error.message : 'Failed to send campaign',
         variant: 'destructive',
       });
     } finally {
@@ -85,22 +80,20 @@ export function SendCampaignDialog({
         <DialogHeader>
           <DialogTitle>Send Campaign</DialogTitle>
           <DialogDescription>
-            Are you sure you want to send &quot;{campaignName}&quot; to {recipientCount} recipients? This action cannot be undone.
+            Send &quot;{campaignName}&quot; to {recipientCount} recipients?
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="rounded-lg border p-4 bg-zinc-950/50">
-            <div className="flex items-center gap-4">
-              <div className="p-2 rounded-full bg-zinc-900">
-                <Send className="h-4 w-4" />
-              </div>
-              <div>
-                <h4 className="font-medium">Ready to Send</h4>
-                <p className="text-sm text-muted-foreground">
-                  Campaign will be sent to {recipientCount} recipients
-                </p>
-              </div>
+        <div className="rounded-lg border p-4 bg-zinc-950/50">
+          <div className="flex items-center gap-4">
+            <div className="p-2 rounded-full bg-zinc-900">
+              <Send className="h-4 w-4" />
+            </div>
+            <div>
+              <h4 className="font-medium">Ready to Send</h4>
+              <p className="text-sm text-muted-foreground">
+                Campaign will be sent via AWS SES
+              </p>
             </div>
           </div>
         </div>

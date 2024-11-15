@@ -2,7 +2,7 @@ import { SettingsForm } from './_component/setting-form';
 
 export const dynamic = 'force-dynamic';
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>

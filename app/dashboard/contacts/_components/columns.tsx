@@ -4,13 +4,11 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "./data-table-column-header";
-import { DataTableRowActions } from "./data-table-row-actions";
-import { formatDistanceToNow } from "date-fns";
 import { Tables } from "@/utils/database.types";
+import { formatDistanceToNow } from "date-fns";
+import { ContactActions } from "./contact-actions";
 
-export type Contact = Tables<'contacts'>;
-
-export const columns: ColumnDef<Contact>[] = [
+export const columns: ColumnDef<Tables<'contacts'>>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -71,28 +69,18 @@ export const columns: ColumnDef<Contact>[] = [
     },
   },
   {
-    accessorKey: "created_at",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Created" />
-    ),
-    cell: ({ row }) => {
-      return formatDistanceToNow(new Date(row.getValue("created_at")), {
-        addSuffix: true,
-      });
-    },
-  },
-  {
     accessorKey: "last_emailed_at",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Last Emailed" />
     ),
     cell: ({ row }) => {
       const date = row.getValue("last_emailed_at") as string;
-      return date ? formatDistanceToNow(new Date(date), { addSuffix: true }) : "Never";
+      if (!date) return "Never";
+      return formatDistanceToNow(new Date(date), { addSuffix: true });
     },
   },
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} />,
+    cell: ({ row }) => <ContactActions contact={row.original} />,
   },
 ]; 

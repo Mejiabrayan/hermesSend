@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { DataTableViewOptions } from "./data-table-view-options";
-import { useQueryState, parseAsString } from 'nuqs';
+import { useContactFilters } from "@/hooks/use-contact-filters";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -14,10 +14,10 @@ interface DataTableToolbarProps<TData> {
 export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
-  const [search, setSearch] = useQueryState('search', parseAsString.withDefault(''));
+  const [{ search }, setSearch] = useContactFilters();
 
   const handleSearch = (value: string) => {
-    setSearch(value || null);
+    setSearch({ search: value || null });
     table.getColumn("email")?.setFilterValue(value);
   };
 
@@ -28,7 +28,7 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-1 items-center space-x-2">
         <Input
           placeholder="Filter emails..."
-          value={search || ''}
+          value={search}
           onChange={(event) => handleSearch(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
@@ -37,7 +37,7 @@ export function DataTableToolbar<TData>({
             variant="ghost"
             onClick={() => {
               table.resetColumnFilters();
-              setSearch(null);
+              setSearch({ search: null });
             }}
             className="h-8 px-2 lg:px-3"
           >

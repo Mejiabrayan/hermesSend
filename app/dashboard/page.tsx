@@ -1,172 +1,136 @@
 import { createServer } from '@/utils/supabase/server';
-import { redirect } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Mail, Users, BarChart3, MousePointerClick } from 'lucide-react';
 import { 
-  AtSignIcon, 
-  UsersIcon, 
-  TrendingUpIcon, 
-  BarChartIcon,
-  PlusIcon,
-  ArrowUpIcon,
-  ArrowDownIcon 
-} from 'lucide-react';
+  RecentCampaigns, 
+  TopContacts, 
+  EngagementChart 
+} from './_components';
+import { Tables } from '@/utils/database.types';
 
-export default async function Page() {
+type CampaignData = Pick<
+  Tables<'campaigns'>,
+  'id' | 'name' | 'status' | 'sent_count' | 'opens_count' | 'clicks_count' | 'created_at'
+>;
+
+export default async function DashboardPage() {
   const supabase = await createServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) {
-    return redirect('/sign-in');
-  }
+  const [campaignsResponse, contactsResponse, analyticsResponse] = await Promise.all([
+    supabase
+      .from('campaigns')
+      .select('id, name, status, sent_count, opens_count, clicks_count, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('contacts')
+      .select('*')
+      .limit(5),
+    supabase
+      .from('campaign_analytics')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100)
+  ]);
 
-  // Fetch recent campaigns and stats
-  const { data: recentCampaigns } = await supabase
-    .from('campaigns')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(5);
+  const campaigns = (campaignsResponse.data || []) as CampaignData[];
+  const contacts = (contactsResponse.data || []) as Tables<'contacts'>[];
+  const analytics = (analyticsResponse.data || []) as Tables<'campaign_analytics'>[];
+
+  const stats = {
+    totalCampaigns: campaigns.length,
+    totalContacts: contacts.length,
+    totalOpens: analytics.filter(a => a.opened_at).length,
+    totalClicks: analytics.filter(a => a.clicked_at).length,
+  };
 
   return (
-    <div className='space-y-8'>
-      {/* Header Section */}
-      <div className='flex items-center justify-between'>
-        <div>
-          <h1 className='text-2xl font-bold'>Welcome back!</h1>
-          <p className='text-muted-foreground'>
-            Here&apos;s what&apos;s happening with your campaigns
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/dashboard/campaigns/new" className="flex items-center gap-2">
-            <PlusIcon className="w-4 h-4" />
-            New Campaign
-          </Link>
-        </Button>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Overview of your email marketing performance
+        </p>
       </div>
 
       {/* Stats Overview */}
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Total Campaigns
             </CardTitle>
-            <AtSignIcon className="h-4 w-4 text-muted-foreground" />
+            <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              +2 from last month
-            </p>
+            <div className="text-2xl font-bold">{stats.totalCampaigns}</div>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Subscribers
+              Total Contacts
             </CardTitle>
-            <UsersIcon className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,350</div>
-            <div className="flex items-center text-xs text-emerald-500">
-              <ArrowUpIcon className="h-3 w-3 mr-1" />
-              +180 new
-            </div>
+            <div className="text-2xl font-bold">{stats.totalContacts}</div>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Avg. Open Rate
+              Email Opens
             </CardTitle>
-            <TrendingUpIcon className="h-4 w-4 text-muted-foreground" />
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">32.9%</div>
-            <div className="flex items-center text-xs text-red-500">
-              <ArrowDownIcon className="h-3 w-3 mr-1" />
-              -4.1% from last week
-            </div>
+            <div className="text-2xl font-bold">{stats.totalOpens}</div>
           </CardContent>
         </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Click Rate
+              Link Clicks
             </CardTitle>
-            <BarChartIcon className="h-4 w-4 text-muted-foreground" />
+            <MousePointerClick className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24.3%</div>
-            <div className="flex items-center text-xs text-emerald-500">
-              <ArrowUpIcon className="h-3 w-3 mr-1" />
-              +2.4% from last week
-            </div>
+            <div className="text-2xl font-bold">{stats.totalClicks}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Campaigns */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Recent Campaigns</CardTitle>
-            <Button variant="ghost" asChild>
-              <Link href="/dashboard/campaigns">View all</Link>
-            </Button>
+      {/* Main Content */}
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="engagement">Engagement</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <RecentCampaigns campaigns={campaigns} />
+            <TopContacts contacts={contacts} />
           </div>
-        </CardHeader>
-        <CardContent>
-          {recentCampaigns?.length === 0 ? (
-            <div className='text-center py-8'>
-              <div className='rounded-full bg-zinc-900 w-12 h-12 flex items-center justify-center mx-auto mb-4'>
-                <AtSignIcon className='w-6 h-6 text-zinc-400' />
-              </div>
-              <h3 className='text-lg font-semibold mb-2'>No campaigns yet</h3>
-              <p className='text-zinc-400 mb-4 max-w-sm mx-auto'>
-                Create your first campaign to start reaching your audience
-              </p>
-              <Button asChild>
-                <Link href="/dashboard/campaigns/new">Create Campaign</Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {recentCampaigns?.map((campaign) => (
-                <div 
-                  key={campaign.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div>
-                    <Link 
-                      href={`/dashboard/campaigns/${campaign.id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {campaign.name}
-                    </Link>
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(campaign.created_at).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="text-sm font-medium">{campaign.opens_count || 0} opens</div>
-                      <div className="text-sm text-muted-foreground">
-                        {campaign.clicks_count || 0} clicks
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        <TabsContent value="engagement">
+          <Card>
+            <CardHeader>
+              <CardTitle>Engagement Over Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EngagementChart analytics={analytics} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
+

@@ -5,9 +5,16 @@ import { Label } from "@/components/ui/label";
 import { User } from 'lucide-react';
 import Image from 'next/image';
 import { UsernameForm } from './username-form';
+import { DomainSettings } from '@/app/dashboard/settings/_components/domain-settings';
+import { createServer } from '@/utils/supabase/server';
 
 export async function SettingsForm() {
   const { data } = await getUserProfile();
+  const supabase = await createServer();
+  const { data: domains } = await supabase
+    .from('domains')
+    .select('*')
+    .order('created_at', { ascending: false });
 
   return (
     <div className="max-w-[600px] mx-auto space-y-6">
@@ -66,6 +73,17 @@ export async function SettingsForm() {
             disabled
           />
         </div>
+      </div>
+
+      {/* Email Domains Section */}
+      <div className="space-y-6">
+        <div className="border-t pt-6">
+          <h3 className="text-lg font-medium">Email Domains</h3>
+          <p className="text-sm text-muted-foreground">
+            Add and verify your email sending domains.
+          </p>
+        </div>
+        <DomainSettings domains={domains || []} />
       </div>
 
       {/* Preferences Section */}
