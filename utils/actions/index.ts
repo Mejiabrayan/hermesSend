@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { createServer } from '@/utils/supabase/server';
-import { Tables } from '@/utils/database.types';
 import { encodedRedirect } from '@/utils/encodedRedirect';
 
 export const signUpAction = async (formData: FormData) => {
@@ -34,16 +33,18 @@ export const signUpAction = async (formData: FormData) => {
   if (signUpData.user) {
     const { error: profileError } = await supabase
       .from('users')
-      .insert({
+      .upsert({
         id: signUpData.user.id,
         email: signUpData.user.email!,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id',
+        ignoreDuplicates: false
       });
 
     if (profileError) {
       console.error('Error creating user profile:', profileError);
-      // Still continue since auth was successful
     }
   }
 
@@ -165,16 +166,13 @@ export const resetPasswordAction = async (formData: FormData) => {
   );
 };
 
-export const getUserProfile = async (): Promise<{
-  data: Tables<'users'> | null;
-  error: string | null;
-}> => {
+export const getUserProfile = async () => {
   try {
+    // Ensure profile exists first
+    await ensureUserProfile();
+    
     const supabase = await createServer();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return {
@@ -185,15 +183,21 @@ export const getUserProfile = async (): Promise<{
 
     const { data, error } = await supabase
       .from('users')
-      .select('*')
+      .select()
       .eq('id', user.id)
       .single();
 
     if (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('Database error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      
       return {
         data: null,
-        error: 'Failed to fetch user profile',
+        error: `Failed to fetch user profile: ${error.message}`,
       };
     }
 
@@ -202,7 +206,7 @@ export const getUserProfile = async (): Promise<{
       error: null,
     };
   } catch (error) {
-    console.error('Unexpected error fetching user profile:', error);
+    console.error('Unexpected error details:', error);
     return {
       data: null,
       error: 'An unexpected error occurred',
@@ -213,6 +217,10 @@ export const getUserProfile = async (): Promise<{
 export const updateUserProfile = async (formData: FormData) => {
   const username = formData.get('username')?.toString();
   
+  if (!username) {
+    return { error: 'Username is required' };
+  }
+
   try {
     const supabase = await createServer();
     const {
@@ -224,19 +232,33 @@ export const updateUserProfile = async (formData: FormData) => {
       return { error: authError?.message || 'User not authenticated' };
     }
 
-    const { error } = await supabase
+    // Check if username already exists
+    const { data: existingUser } = await supabase
       .from('users')
-      .update({ username })
+      .select('id')
+      .eq('username', username)
+      .neq('id', user.id)
+      .single();
+
+    if (existingUser) {
+      return { error: 'Username already taken' };
+    }
+
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ 
+        username,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', user.id);
 
-    if (error) {
-      console.error('Error updating user profile:', error);
+    if (updateError) {
+      console.error('Error updating user profile:', updateError);
       return { error: 'Failed to update user profile' };
     }
 
-    // Revalidate both the settings page and the userProfile query
     revalidatePath('/dashboard/settings');
-    revalidatePath('/', 'layout'); // This will revalidate the entire layout including the sidebar
+    revalidatePath('/', 'layout');
     return { success: true };
     
   } catch (error) {
@@ -331,4 +353,39 @@ export const updateAvatarAction = async (formData: FormData) => {
     console.error('Unexpected error updating avatar:', error);
     return { error: 'An unexpected error occurred' };
   }
+};
+
+export const ensureUserProfile = async () => {
+  const supabase = await createServer();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) return null;
+
+  // Check if profile exists
+  const { data: profile } = await supabase
+    .from('users')
+    .select()
+    .eq('id', user.id)
+    .single();
+
+  if (!profile) {
+    // Create profile if it doesn't exist
+    const { error: profileError } = await supabase
+      .from('users')
+      .upsert({
+        id: user.id,
+        email: user.email!,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id',
+        ignoreDuplicates: false
+      });
+
+    if (profileError) {
+      console.error('Error ensuring user profile:', profileError);
+    }
+  }
+
+  return profile;
 };

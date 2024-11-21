@@ -59,12 +59,13 @@ export async function POST(
         id: send.contacts!.id
       }));
 
-    // Send campaign
+    // Send campaign with user ID
     const result = await SESService.sendCampaign({
       recipients,
       subject: typedCampaign.subject,
       content: typedCampaign.content,
-      campaignId: typedCampaign.id
+      campaignId: typedCampaign.id,
+      userId: user.id
     });
 
     if (!result.success) {
@@ -97,7 +98,6 @@ export async function POST(
     revalidatePath('/dashboard/campaigns');
     
     return NextResponse.json({ 
-      success: true,
       ...result
     });
 

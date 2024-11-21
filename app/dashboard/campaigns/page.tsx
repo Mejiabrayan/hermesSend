@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { CampaignsTable } from './_components/campaigns-table';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -61,7 +61,21 @@ async function CampaignsData() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  return <CampaignsTable campaigns={campaigns || []} />;
+  if (!campaigns?.length) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center animate-in fade-in-50">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+          <FileText className="h-10 w-10 text-muted-foreground" />
+        </div>
+        <h2 className="mt-6 text-xl font-semibold">No campaigns yet</h2>
+        <p className="mt-2 text-center text-sm text-muted-foreground max-w-sm">
+          Create your first email campaign to start engaging with your audience.
+        </p>
+      </div>
+    );
+  }
+
+  return <CampaignsTable campaigns={campaigns} />;
 }
 
 // Main page component

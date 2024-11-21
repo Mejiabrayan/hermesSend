@@ -88,19 +88,38 @@ export class SESService {
 
   // Simplified campaign send with better error handling
   static async sendCampaign({
-    from = "noreply@hermessend.xyz",
     recipients,
     subject,
     content,
     campaignId,
+    userId,
   }: {
-    from?: string;
     recipients: CampaignRecipient[];
     subject: string;
     content: string;
     campaignId: string;
+    userId: string;
   }) {
     try {
+      // Get user's verified domain
+      const supabase = await createServer();
+      const { data: domains } = await supabase
+        .from('domains')
+        .select('domain')
+        .eq('user_id', userId)
+        .eq('status', 'verified')
+        .limit(1)
+        .single();
+
+      if (!domains) {
+        return {
+          success: false,
+          error: 'No verified domain found. Please verify a domain before sending campaigns.'
+        };
+      }
+
+      const from = `noreply@${domains.domain}`; // Use user's verified domain
+
       // Validate recipients
       const validRecipients = recipients.filter(r => this.isValidEmail(r.email));
       

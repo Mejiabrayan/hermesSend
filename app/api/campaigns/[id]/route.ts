@@ -4,9 +4,12 @@ import { revalidatePath } from 'next/cache';
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await params first
+    const { id } = await params;
+    
     const supabase = await createServer();
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -18,7 +21,7 @@ export async function DELETE(
     const { error: sendsError } = await supabase
       .from('campaign_sends')
       .delete()
-      .eq('campaign_id', params.id);
+      .eq('campaign_id', id);
 
     if (sendsError) throw sendsError;
 
@@ -26,7 +29,7 @@ export async function DELETE(
     const { error: analyticsError } = await supabase
       .from('campaign_analytics')
       .delete()
-      .eq('campaign_id', params.id);
+      .eq('campaign_id', id);
 
     if (analyticsError) throw analyticsError;
 
@@ -34,7 +37,7 @@ export async function DELETE(
     const { error: campaignError } = await supabase
       .from('campaigns')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id); // Ensure user owns the campaign
 
     if (campaignError) throw campaignError;

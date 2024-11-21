@@ -11,27 +11,36 @@ export type Database = {
     Tables: {
       campaign_analytics: {
         Row: {
+          browser_info: Json | null
           campaign_id: string
           clicked_at: string | null
           contact_id: string
           created_at: string
+          device_info: Json | null
           id: string
+          location_info: Json | null
           opened_at: string | null
         }
         Insert: {
+          browser_info?: Json | null
           campaign_id: string
           clicked_at?: string | null
           contact_id: string
           created_at?: string
+          device_info?: Json | null
           id?: string
+          location_info?: Json | null
           opened_at?: string | null
         }
         Update: {
+          browser_info?: Json | null
           campaign_id?: string
           clicked_at?: string | null
           contact_id?: string
           created_at?: string
+          device_info?: Json | null
           id?: string
+          location_info?: Json | null
           opened_at?: string | null
         }
         Relationships: [
@@ -44,6 +53,42 @@ export type Database = {
           },
           {
             foreignKeyName: "campaign_analytics_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_recipients: {
+        Row: {
+          campaign_id: string
+          contact_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          campaign_id: string
+          contact_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          campaign_id?: string
+          contact_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_recipients_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
@@ -99,40 +144,55 @@ export type Database = {
       campaigns: {
         Row: {
           clicks_count: number | null
+          completed_at: string | null
           content: string
           created_at: string
+          deleted_at: string | null
           id: string
           name: string
           opens_count: number | null
+          performance_metrics: Json | null
+          schedule_at: string | null
           sent_count: number | null
           status: string
           subject: string
+          total_recipients: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
           clicks_count?: number | null
+          completed_at?: string | null
           content: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name: string
           opens_count?: number | null
+          performance_metrics?: Json | null
+          schedule_at?: string | null
           sent_count?: number | null
           status?: string
           subject: string
+          total_recipients?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
           clicks_count?: number | null
+          completed_at?: string | null
           content?: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name?: string
           opens_count?: number | null
+          performance_metrics?: Json | null
+          schedule_at?: string | null
           sent_count?: number | null
           status?: string
           subject?: string
+          total_recipients?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -140,32 +200,44 @@ export type Database = {
       }
       contacts: {
         Row: {
+          bounce_count: number | null
           created_at: string
+          deleted_at: string | null
           email: string
           id: string
           last_emailed_at: string | null
+          metadata: Json | null
           name: string | null
           status: string
+          tags: Json | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          bounce_count?: number | null
           created_at?: string
+          deleted_at?: string | null
           email: string
           id?: string
           last_emailed_at?: string | null
+          metadata?: Json | null
           name?: string | null
           status?: string
+          tags?: Json | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          bounce_count?: number | null
           created_at?: string
+          deleted_at?: string | null
           email?: string
           id?: string
           last_emailed_at?: string | null
+          metadata?: Json | null
           name?: string | null
           status?: string
+          tags?: Json | null
           updated_at?: string
           user_id?: string
         }
@@ -174,9 +246,12 @@ export type Database = {
       domains: {
         Row: {
           created_at: string | null
+          dkim_verified: boolean | null
+          dmarc_verified: boolean | null
           dns_records: Json | null
           domain: string
           id: string
+          spf_verified: boolean | null
           status: string
           updated_at: string | null
           user_id: string
@@ -184,9 +259,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          dkim_verified?: boolean | null
+          dmarc_verified?: boolean | null
           dns_records?: Json | null
           domain: string
           id?: string
+          spf_verified?: boolean | null
           status?: string
           updated_at?: string | null
           user_id: string
@@ -194,9 +272,12 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          dkim_verified?: boolean | null
+          dmarc_verified?: boolean | null
           dns_records?: Json | null
           domain?: string
           id?: string
+          spf_verified?: boolean | null
           status?: string
           updated_at?: string | null
           user_id?: string
@@ -235,37 +316,74 @@ export type Database = {
           to_email?: string
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "email_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          name: string
+          subject: string | null
+          updated_at: string | null
+          user_id: string | null
+          variables: Json | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          name: string
+          subject?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          subject?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          variables?: Json | null
+        }
+        Relationships: []
       }
       users: {
         Row: {
           created_at: string | null
+          daily_email_limit: number | null
+          deleted_at: string | null
           email: string
           id: string
+          monthly_email_limit: number | null
           photo_url: string | null
           updated_at: string | null
           username: string | null
         }
         Insert: {
           created_at?: string | null
+          daily_email_limit?: number | null
+          deleted_at?: string | null
           email: string
           id?: string
+          monthly_email_limit?: number | null
           photo_url?: string | null
           updated_at?: string | null
           username?: string | null
         }
         Update: {
           created_at?: string | null
+          daily_email_limit?: number | null
+          deleted_at?: string | null
           email?: string
           id?: string
+          monthly_email_limit?: number | null
           photo_url?: string | null
           updated_at?: string | null
           username?: string | null
@@ -285,7 +403,14 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      campaign_status:
+        | "draft"
+        | "scheduled"
+        | "sending"
+        | "completed"
+        | "paused"
+      contact_status: "active" | "unsubscribed" | "bounced" | "complained"
+      email_status: "draft" | "queued" | "sent" | "failed" | "bounced"
     }
     CompositeTypes: {
       [_ in never]: never

@@ -4,71 +4,68 @@ import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { updateUserProfile } from '@/utils/actions';
 import { SubmitButton } from '@/components/submit-button';
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tables } from '@/utils/database.types';
-
-type UserProfileQuery = {
-  data: Tables<'users'> | null;
-  error: string | null;
-}
+import { useToast } from '@/hooks/use-toast';
 
 export function UsernameForm({ initialUsername }: { initialUsername: string }) {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      return updateUserProfile(formData);
+    mutationFn: async (username: string) => {
+      const formData = new FormData();
+      formData.append('username', username);
+      const result = await updateUserProfile(formData);
+      if (result.error) throw new Error(result.error);
+      return result;
     },
-    onMutate: async (newFormData) => {
-      await queryClient.cancelQueries({ queryKey: ['userProfile'] });
-      const previousProfile = queryClient.getQueryData<UserProfileQuery>(['userProfile']);
-      
-      queryClient.setQueryData<UserProfileQuery>(['userProfile'], (old) => ({
-        ...old!,
-        data: {
-          ...old!.data!,
-          username: newFormData.get('username')?.toString() || '',
-        },
-      }));
-
-      return { previousProfile };
-    },
-    onError: (err, newFormData, context) => {
-      if (context?.previousProfile) {
-        queryClient.setQueryData(['userProfile'], context.previousProfile);
-      }
-    },
-    onSettled: () => {
+    onSuccess: () => {
+      toast({
+        title: 'Username updated',
+        description: 'Your username has been updated successfully.',
+      });
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update username. Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    updateProfileMutation.mutate(formData);
+    const username = formData.get('username') as string;
+    if (username === initialUsername) {
+      toast({
+        title: 'No changes',
+        description: 'Username is the same as before.',
+      });
+      return;
+    }
+    updateProfileMutation.mutate(username);
   };
 
   return (
-    <form onSubmit={handleSubmit} className='space-y-4'>
-      <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
-        <div className="flex gap-2">
-          <Input
-            id="username"
-            name="username"
-            defaultValue={initialUsername}
-            required
-            minLength={2}
-          />
-          <SubmitButton
-            size="sm"
-            pendingText='Saving...'
-            disabled={updateProfileMutation.isPending}
-          >
-            Save
-          </SubmitButton>
-        </div>
+    <form onSubmit={handleSubmit}>
+      <div className="flex gap-2">
+        <Input
+          id="username"
+          name="username"
+          defaultValue={initialUsername}
+          required
+          minLength={2}
+          placeholder="Enter username"
+        />
+        <SubmitButton
+          size="sm"
+          pendingText='Saving...'
+          disabled={updateProfileMutation.isPending}
+        >
+          Save
+        </SubmitButton>
       </div>
     </form>
   );

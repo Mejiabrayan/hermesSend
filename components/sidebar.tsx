@@ -51,7 +51,7 @@ const menuItems = [
     ],
   },
   {
-    label: 'Audience',
+    label: 'Contacts',
     items: [
       {
         label: 'Contacts',

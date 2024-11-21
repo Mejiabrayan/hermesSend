@@ -3,6 +3,7 @@
 import { Tables } from '@/utils/database.types';
 import { format } from 'date-fns';
 import { Mail, MousePointerClick, Eye } from 'lucide-react';
+import { CampaignWithSends } from '../types';
 
 interface TimelineEvent {
   type: 'send' | 'open' | 'click';
@@ -17,7 +18,7 @@ interface CampaignTimelineProps {
     analytics: Tables<'campaign_analytics'>[];
     sends: Tables<'campaign_sends'>[];
   };
-  campaign: any;
+  campaign: CampaignWithSends;
 }
 
 export function CampaignTimeline({ analytics, campaign }: CampaignTimelineProps) {

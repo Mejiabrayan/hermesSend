@@ -30,22 +30,34 @@ export async function POST(req: Request) {
       );
     }
 
+    // Create campaign with all required fields
+    const campaignData = {
+      user_id: user.id,
+      name: result.data.name,
+      subject: result.data.subject,
+      content: result.data.content,
+      status: 'draft',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      sent_count: 0,
+      opens_count: 0,
+      clicks_count: 0,
+      total_recipients: result.data.recipients.length,
+      deleted_at: null,
+      completed_at: null,
+      schedule_at: null,
+      performance_metrics: null
+    };
+
     // Create campaign
     const { data: campaign, error: campaignError } = await supabase
       .from('campaigns')
-      .insert({
-        user_id: user.id,
-        name: result.data.name,
-        subject: result.data.subject,
-        content: result.data.content,
-        status: 'draft',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
+      .insert(campaignData)
       .select()
       .single();
 
     if (campaignError) {
+      console.error('Campaign creation error:', campaignError);
       throw campaignError;
     }
 
@@ -56,6 +68,8 @@ export async function POST(req: Request) {
         contact_id: contactId,
         status: 'pending',
         created_at: new Date().toISOString(),
+        sent_at: null,
+        message_id: null
       }));
 
       const { error: sendsError } = await supabase
@@ -63,6 +77,7 @@ export async function POST(req: Request) {
         .insert(campaignSends);
 
       if (sendsError) {
+        console.error('Campaign sends error:', sendsError);
         throw sendsError;
       }
     }
@@ -75,9 +90,9 @@ export async function POST(req: Request) {
     });
 
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error('Campaign creation error:', error);
     return NextResponse.json(
-      { error: 'An unexpected error occurred' },
+      { error: error instanceof Error ? error.message : 'An unexpected error occurred' },
       { status: 500 }
     );
   }

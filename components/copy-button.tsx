@@ -6,9 +6,11 @@ import { Check, Copy } from "lucide-react";
 
 interface CopyButtonProps {
   value: string;
+  variant?: "default" | "outline";
+  size?: "default" | "sm" | "lg";
 }
 
-export function CopyButton({ value }: CopyButtonProps) {
+export function CopyButton({ value, variant, size }: CopyButtonProps) {
   const [copied, setCopied] = React.useState(false);
 
   React.useEffect(() => {
@@ -20,8 +22,8 @@ export function CopyButton({ value }: CopyButtonProps) {
 
   return (
     <Button
-      variant="ghost"
-      size="sm"
+      variant={variant}
+      size={size}
       onClick={() => {
         navigator.clipboard.writeText(value);
         setCopied(true);
