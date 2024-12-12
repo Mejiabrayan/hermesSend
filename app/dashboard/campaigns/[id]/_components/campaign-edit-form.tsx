@@ -104,7 +104,7 @@ export function CampaignEditForm({ campaign, onCancelAction, onSuccessAction }: 
               </label>
               <RecipientSelector
                 selectedRecipients={selectedRecipients}
-                onRecipientsChange={setSelectedRecipients}
+                onRecipientsChangeAction={setSelectedRecipients}
               />
             </div>
           </div>

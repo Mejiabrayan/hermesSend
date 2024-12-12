@@ -166,11 +166,15 @@ export class SESService {
                 Text: { Data: content.replace(/<[^>]*>/g, '') }
               }
             },
-            ConfigurationSetName: 'hermessend-email-events',
+            ConfigurationSetName: 'hermessend-default',
             Tags: [
               {
                 Name: 'campaignId',
                 Value: campaignId
+              },
+              {
+                Name: 'userId',
+                Value: userId
               }
             ]
           });

@@ -58,7 +58,13 @@ async function CampaignsData() {
   const supabase = await createServer();
   const { data: campaigns } = await supabase
     .from('campaigns')
-    .select('*')
+    .select(`
+      *,
+      campaign_sends (
+        id,
+        contact_id
+      )
+    `)
     .order('created_at', { ascending: false });
 
   if (!campaigns?.length) {

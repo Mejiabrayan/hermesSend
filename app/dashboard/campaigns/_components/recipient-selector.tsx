@@ -22,12 +22,12 @@ import Link from 'next/link';
 
 interface RecipientSelectorProps {
   selectedRecipients: string[];
-  onRecipientsChange: (recipients: string[]) => void;
+  onRecipientsChangeAction: (recipients: string[]) => void;
 }
 
 export function RecipientSelector({ 
   selectedRecipients, 
-  onRecipientsChange 
+  onRecipientsChangeAction 
 }: RecipientSelectorProps) {
   const [open, setOpen] = useState(false);
   const [contacts, setContacts] = useState<Tables<'contacts'>[]>([]);
@@ -63,14 +63,14 @@ export function RecipientSelector({
     const newRecipients = selectedRecipients.includes(contactId)
       ? selectedRecipients.filter(id => id !== contactId)
       : [...selectedRecipients, contactId];
-    onRecipientsChange(newRecipients);
+    onRecipientsChangeAction(newRecipients);
   };
 
   const toggleAll = () => {
     if (selectedRecipients.length === filteredContacts.length) {
-      onRecipientsChange([]);
+      onRecipientsChangeAction  ([]);
     } else {
-      onRecipientsChange(filteredContacts.map(contact => contact.id));
+      onRecipientsChangeAction(filteredContacts.map(contact => contact.id));
     }
   };
 
