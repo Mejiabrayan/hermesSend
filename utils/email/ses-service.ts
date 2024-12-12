@@ -1,3 +1,4 @@
+import { createServer } from '@/utils/supabase/server';
 import { SESClient, SendEmailCommand, SendBulkTemplatedEmailCommand } from "@aws-sdk/client-ses";
 
 interface SendResult {
@@ -9,6 +10,15 @@ interface SendResult {
 interface CampaignRecipient {
   email: string;
   id: string;
+}
+
+interface SendCampaignParams {
+  from: string;
+  recipients: CampaignRecipient[];
+  subject: string;
+  content: string;
+  campaignId: string;
+  userId: string;
 }
 
 export class SESService {

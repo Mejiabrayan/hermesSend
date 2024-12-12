@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "./data-table-column-header";
 import { Tables } from "@/utils/database.types";
 import { formatDistanceToNow } from "date-fns";
-import { ContactActions } from "./contact-actions";
+import { DataTableRowActions } from "./data-table-row-actions";
 
 export const columns: ColumnDef<Tables<'contacts'>>[] = [
   {
@@ -81,6 +81,6 @@ export const columns: ColumnDef<Tables<'contacts'>>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => <ContactActions contact={row.original} />,
+    cell: ({ row }) => <DataTableRowActions row={row} />,
   },
 ]; 

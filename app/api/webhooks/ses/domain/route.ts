@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 
 interface SESNotification {
   Type: string;
-  Message: string;
   MessageId: string;
   Timestamp: string;
   TopicArn: string;

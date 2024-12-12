@@ -28,27 +28,46 @@ export function BulkActions({ selectedRows, onSuccess }: BulkActionsProps) {
   const handleBulkDelete = async () => {
     setLoading(true);
     try {
-      // Delete each selected campaign
-      await Promise.all(
-        selectedRows.map((id) =>
-          fetch(`/api/campaigns/${id}`, {
+      // Delete each selected campaign with proper error handling
+      const results = await Promise.allSettled(
+        selectedRows.map(async (id) => {
+          const response = await fetch(`/api/campaigns/${id}`, {
             method: 'DELETE',
-          })
-        )
+          });
+          if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'Failed to delete campaign');
+          }
+          return response.json();
+        })
       );
 
-      toast({
-        title: 'Campaigns deleted',
-        description: `Successfully deleted ${selectedRows.length} campaigns.`,
-      });
+      // Count successful and failed deletions
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.filter(r => r.status === 'rejected').length;
+
+      // Show appropriate toast message
+      if (failed === 0) {
+        toast({
+          title: 'Campaigns deleted',
+          description: `Successfully deleted ${successful} campaigns.`,
+        });
+      } else {
+        toast({
+          title: 'Partial success',
+          description: `Deleted ${successful} campaigns, ${failed} failed.`,
+          variant: 'destructive',
+        });
+      }
       
       onSuccess?.();
       router.refresh();
       setShowDeleteDialog(false);
-    } catch {
+    } catch (error) {
+      console.error('Bulk delete error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete campaigns',
+        description: error instanceof Error ? error.message : 'Failed to delete campaigns',
         variant: 'destructive',
       });
     } finally {

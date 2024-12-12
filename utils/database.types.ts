@@ -60,42 +60,6 @@ export type Database = {
           },
         ]
       }
-      campaign_recipients: {
-        Row: {
-          campaign_id: string
-          contact_id: string
-          created_at: string
-          id: string
-        }
-        Insert: {
-          campaign_id: string
-          contact_id: string
-          created_at?: string
-          id?: string
-        }
-        Update: {
-          campaign_id?: string
-          contact_id?: string
-          created_at?: string
-          id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "campaign_recipients_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "campaigns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "campaign_recipients_contact_id_fkey"
-            columns: ["contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       campaign_sends: {
         Row: {
           campaign_id: string
@@ -398,6 +362,15 @@ export type Database = {
       set_current_user_id: {
         Args: {
           user_id: string
+        }
+        Returns: undefined
+      }
+      update_campaign_with_recipients: {
+        Args: {
+          p_campaign_id: string
+          p_user_id: string
+          p_campaign_data: Json
+          p_recipients: string[]
         }
         Returns: undefined
       }

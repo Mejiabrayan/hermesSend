@@ -26,6 +26,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { useQueryStates } from 'nuqs';
 import { parseAsString } from 'nuqs';
+import { Database } from '../../../../../utils/database.types';
+
+// Add missing fields to match the database type
+type CampaignForEdit = Database['public']['Tables']['campaigns']['Row'] & {
+  campaign_sends?: {
+    contact_id: string;
+  }[];
+};
 
 export function CampaignDetail({ campaign }: { campaign: CampaignWithSends }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -47,11 +55,35 @@ export function CampaignDetail({ campaign }: { campaign: CampaignWithSends }) {
   });
 
   if (isEditing) {
+    // Transform campaign to match CampaignEditForm requirements
+    const editableCampaign: CampaignForEdit = {
+      id: campaign.id,
+      name: campaign.name,
+      subject: campaign.subject,
+      content: campaign.content,
+      status: campaign.status,
+      created_at: campaign.created_at,
+      updated_at: campaign.updated_at,
+      sent_count: campaign.sent_count,
+      opens_count: campaign.opens_count,
+      clicks_count: campaign.clicks_count,
+      user_id: campaign.user_id,
+      schedule_at: campaign.schedule_at,
+      completed_at: null,
+      deleted_at: null,
+      performance_metrics: null,
+      total_recipients: campaign.campaign_sends?.length || 0,
+      campaign_sends: campaign.campaign_sends?.map(send => ({
+        contact_id: send.contact_id
+      }))
+    };
+
     return (
       <div className="space-y-6">
         <CampaignEditForm 
-          campaign={campaign} 
+          campaign={editableCampaign} 
           onCancelAction={() => setIsEditing(false)}
+          onSuccessAction={() => setIsEditing(false)}
         />
       </div>
     );
@@ -262,7 +294,6 @@ export function CampaignDetail({ campaign }: { campaign: CampaignWithSends }) {
         onOpenChangeAction={setShowSendDialog}
         campaignId={campaign.id}
         campaignName={campaign.name}
-        recipientCount={campaign.campaign_sends?.length || 0}
       />
 
       <DeleteCampaignDialog

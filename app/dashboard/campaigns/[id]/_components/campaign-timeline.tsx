@@ -4,11 +4,13 @@ import { Tables } from '@/utils/database.types';
 import { format } from 'date-fns';
 import { Mail, MousePointerClick, Eye } from 'lucide-react';
 import { CampaignWithSends } from '../types';
+import * as React from 'react';
 
 interface TimelineEvent {
+  id: string;
   type: 'send' | 'open' | 'click';
   timestamp: string;
-  icon: JSX.Element;
+  icon: React.ReactNode;
   description: string;
 }
 
@@ -25,7 +27,8 @@ export function CampaignTimeline({ analytics, campaign }: CampaignTimelineProps)
   const events: TimelineEvent[] = [
     // Campaign creation
     {
-      type: 'send',
+      id: `campaign-creation-${campaign.id}`,
+      type: 'send' as const,
       timestamp: campaign.created_at,
       icon: <Mail className="h-4 w-4" />,
       description: 'Campaign created'
@@ -34,6 +37,7 @@ export function CampaignTimeline({ analytics, campaign }: CampaignTimelineProps)
     ...analytics.analytics
       .filter(a => a.opened_at)
       .map(a => ({
+        id: `open-${a.id}`,
         type: 'open' as const,
         timestamp: a.opened_at!,
         icon: <Eye className="h-4 w-4" />,
@@ -43,6 +47,7 @@ export function CampaignTimeline({ analytics, campaign }: CampaignTimelineProps)
     ...analytics.analytics
       .filter(a => a.clicked_at)
       .map(a => ({
+        id: `click-${a.id}`,
         type: 'click' as const,
         timestamp: a.clicked_at!,
         icon: <MousePointerClick className="h-4 w-4" />,
@@ -52,8 +57,8 @@ export function CampaignTimeline({ analytics, campaign }: CampaignTimelineProps)
 
   return (
     <div className="space-y-4">
-      {events.map((event, index) => (
-        <div key={index} className="flex gap-4 items-start">
+      {events.map((event) => (
+        <div key={event.id} className="flex gap-4 items-start">
           <div className="mt-1 p-2 rounded-full bg-zinc-950/50">
             {event.icon}
           </div>
@@ -67,4 +72,4 @@ export function CampaignTimeline({ analytics, campaign }: CampaignTimelineProps)
       ))}
     </div>
   );
-} 
+}

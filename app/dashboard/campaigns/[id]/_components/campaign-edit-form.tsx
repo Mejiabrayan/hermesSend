@@ -7,7 +7,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Save, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { Tables } from '@/utils/database.types';
 import { RichTextEditor } from '../../_components/rich-text-editor';
 import { RecipientSelector } from '../../_components/recipient-selector';
@@ -19,21 +18,20 @@ interface CampaignEditFormProps {
     }[];
   };
   onCancelAction: () => void;
+  onSuccessAction: () => void;
 }
 
-export function CampaignEditForm({ campaign, onCancelAction }: CampaignEditFormProps) {
+export function CampaignEditForm({ campaign, onCancelAction, onSuccessAction }: CampaignEditFormProps) {
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
   const [content, setContent] = useState(campaign.content);
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>(
     campaign.campaign_sends?.map(send => send.contact_id) || []
   );
-  const { toast } = useToast();
-  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-
     try {
       const formData = new FormData(e.currentTarget);
       const response = await fetch(`/api/campaigns/${campaign.id}`, {
@@ -49,28 +47,30 @@ export function CampaignEditForm({ campaign, onCancelAction }: CampaignEditFormP
         },
       });
 
-      if (!response.ok) throw new Error('Failed to update campaign');
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to update campaign');
+      }
 
       toast({
         title: 'Campaign updated',
-        description: 'Your changes have been saved.',
+        description: 'Your campaign has been updated successfully.',
       });
 
-      router.refresh();
-      onCancelAction();
-    } catch {
+      onSuccessAction?.();
+    } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to update campaign',
+        description: error instanceof Error ? error.message : 'Failed to update campaign',
         variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={onSubmit} className="space-y-6">
       <Card>
         <CardContent className="pt-6">
           <div className="space-y-4">

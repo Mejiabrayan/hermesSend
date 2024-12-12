@@ -4,11 +4,18 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Card } from '@/components/ui/card';
 import { CopyButton } from '@/components/copy-button';
 import { Badge } from '@/components/ui/badge';
 import { Tables } from '@/utils/database.types';
 import { useRouter } from 'next/navigation';
+
+interface DNSRecord {
+  type: string;
+  host: string;
+  value: string;
+  ttl: number;
+  description?: string;
+}
 
 interface DomainSectionProps {
   domains: Tables<'domains'>[];
@@ -43,7 +50,7 @@ export function DomainSection({ domains }: DomainSectionProps) {
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to add domain',
+        description: error instanceof Error ? error.message : 'Failed to add domain',
         variant: 'destructive',
       });
     } finally {
@@ -75,14 +82,27 @@ export function DomainSection({ domains }: DomainSectionProps) {
             </div>
             {domain.dns_records && (
               <div className="space-y-2">
-                {(domain.dns_records as any[]).map((record) => (
-                  <div key={record.type} className="text-sm">
-                    <div className="flex items-center justify-between">
-                      <span>{record.type}</span>
-                      <CopyButton value={record.value} />
-                    </div>
-                  </div>
-                ))}
+                {(() => {
+                  const records = typeof domain.dns_records === 'string'
+                    ? JSON.parse(domain.dns_records)
+                    : domain.dns_records;
+
+                  if (Array.isArray(records) && records.every(record =>
+                    typeof record === 'object' && record !== null &&
+                    'type' in record && 'host' in record &&
+                    'value' in record && 'ttl' in record
+                  )) {
+                    return (records as DNSRecord[]).map((record) => (
+                      <div key={record.type} className="text-sm">
+                        <div className="flex items-center justify-between">
+                          <span>{record.type}</span>
+                          <CopyButton value={record.value} />
+                        </div>
+                      </div>
+                    ));
+                  }
+                  return null;
+                })()}
               </div>
             )}
           </div>

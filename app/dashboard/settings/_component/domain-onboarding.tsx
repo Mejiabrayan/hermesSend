@@ -1,30 +1,45 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2, Circle, CircleDot, Info, Mail } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import {
+  CheckCircle2,
+  Circle,
+  CircleDot,
+  Info,
+  Mail,
+  Copy,
+  ExternalLink,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Tables } from '@/utils/database.types';
 import { verifyDomain, getDomainStatus, saveDomain } from '../domains/actions';
-import { CopyButton } from "@/components/copy-button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { CopyButton } from '@/components/copy-button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useRouter } from 'next/navigation';
-import { useQuery} from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { parseAsString } from 'nuqs';
 import { useQueryState } from 'nuqs';
-import { type DomainData, type DNSRecord } from '../types';
+import { type DNSRecord } from '../types';
+import { toast } from '@/hooks/use-toast';
 
 interface DomainOnboardingProps {
   domain?: Tables<'domains'>;
@@ -34,13 +49,112 @@ interface DomainOnboardingProps {
 
 type Step = 'input' | 'records' | 'verify' | 'complete';
 
-export function DomainOnboarding({ 
-  domain, 
-  initialVerificationStatus, 
-  initialDomain 
+interface DomainData {
+  name: string;
+  dnsRecords: DNSRecord[];
+  verificationToken?: string;
+}
+
+// Add a helper component for DNS records table
+function DNSRecordsTable({ records }: { records: DNSRecord[] }) {
+  return (
+    <div className='rounded-lg border'>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Type</TableHead>
+            <TableHead>Host</TableHead>
+            <TableHead>Value / Points to</TableHead>
+            <TableHead>TTL</TableHead>
+            <TableHead className='w-[100px]'>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {records.map((record, i) => (
+            <TableRow key={i}>
+              <TableCell>
+                <Badge variant='outline'>{record.type}</Badge>
+              </TableCell>
+              <TableCell>
+                <div className='flex items-center gap-2'>
+                  <code className='relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm'>
+                    {record.host}
+                  </code>
+                  <div className="text-muted-foreground hover:text-foreground">
+                    <CopyButton 
+                      value={record.host} 
+                      variant="outline"
+                      size="sm"
+                    />
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell className='font-mono text-sm'>
+                <div className='flex items-center gap-2'>
+                  <span className='truncate max-w-[300px]'>{record.value}</span>
+                  <div className="text-muted-foreground hover:text-foreground">
+                    <CopyButton 
+                      value={record.value} 
+                      variant="outline"
+                      size="sm"
+                    />
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>{record.ttl}s</TableCell>
+              <TableCell>
+                <div className='flex items-center gap-2'>
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `Type: ${record.type}\nHost: ${record.host}\nValue: ${record.value}\nTTL: ${record.ttl}`
+                      );
+                      toast({
+                        title: 'Copied',
+                        description: 'DNS record copied to clipboard',
+                      });
+                    }}
+                  >
+                    <Copy className='h-4 w-4' />
+                  </Button>
+                  {record.description && (
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        toast({
+                          title: 'Info',
+                          description: record.description,
+                        });
+                      }}
+                    >
+                      <Info className='h-4 w-4' />
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+export function DomainOnboarding({
+  domain,
+  initialVerificationStatus,
+  initialDomain,
 }: DomainOnboardingProps) {
   const [currentStep, setCurrentStep] = useState<Step>(() => {
-    if (domain?.status === 'verified' || initialVerificationStatus === 'Success') {
+    if (
+      domain?.status === 'verified' ||
+      initialVerificationStatus === 'Success'
+    ) {
       return 'complete';
     }
     if (domain?.status === 'verifying') {
@@ -49,7 +163,7 @@ export function DomainOnboarding({
     return 'input';
   });
 
-  const [domainData, setDomainData] = useState<DomainData>({
+  const [domainData, setDomainData] = useState({
     name: domain?.domain || initialDomain || '',
     dnsRecords: (domain?.dns_records as unknown as DNSRecord[]) || [],
   });
@@ -75,9 +189,9 @@ export function DomainOnboarding({
   // Use this instead of local state
   useEffect(() => {
     if (domainState) {
-      setDomainData(prev => ({
+      setDomainData((prev: DomainData) => ({
         ...prev,
-        name: domainState
+        name: domainState,
       }));
       setCurrentStep('verify');
     }
@@ -93,17 +207,17 @@ export function DomainOnboarding({
       if (!result.success) throw new Error(result.error);
 
       if (result.dnsRecords) {
-        setDomainData(prev => ({
+        setDomainData((prev) => ({
           ...prev,
           dnsRecords: result.dnsRecords as DNSRecord[],
-          verificationToken: result.verificationToken || undefined
+          verificationToken: result.verificationToken || undefined,
         }));
 
         await saveDomain({
           domain: domainData.name,
           dnsRecords: result.dnsRecords as DNSRecord[],
           verificationToken: result.verificationToken || '',
-          status: 'verifying'
+          status: 'verifying',
         });
 
         setCurrentStep('records');
@@ -111,7 +225,10 @@ export function DomainOnboarding({
     } catch (error) {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to generate DNS records',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to generate DNS records',
         variant: 'destructive',
       });
     } finally {
@@ -132,7 +249,9 @@ export function DomainOnboarding({
   const { data: domainStatus } = useQuery({
     queryKey: ['domain-status', domainData.name],
     queryFn: async () => {
-      const response = await fetch(`/api/domains/status?domain=${domainData.name}`);
+      const response = await fetch(
+        `/api/domains/status?domain=${domainData.name}`
+      );
       if (!response.ok) throw new Error('Failed to check domain status');
       const data = await response.json();
       return data.status;
@@ -169,8 +288,8 @@ export function DomainOnboarding({
         await saveDomain({
           domain: domainData.name,
           dnsRecords: domainData.dnsRecords,
-          verificationToken: domainData.verificationToken || '',
-          status: 'verified'
+          verificationToken: '',
+          status: 'verified',
         });
 
         // Move to complete step when verified
@@ -226,7 +345,8 @@ export function DomainOnboarding({
     } catch (error) {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to send test email',
+        description:
+          error instanceof Error ? error.message : 'Failed to send test email',
         variant: 'destructive',
       });
     } finally {
@@ -235,28 +355,33 @@ export function DomainOnboarding({
   };
 
   return (
-    <div className="space-y-8">
+    <div className='space-y-8'>
       {/* Progress Steps */}
-      <div className="flex justify-between">
+      <div className='flex justify-between'>
         {steps.map((step, i) => (
-          <div key={step.id} className="flex items-center">
-            <div className="flex flex-col items-center">
+          <div key={step.id} className='flex items-center'>
+            <div className='flex flex-col items-center'>
               {currentStep === step.id ? (
-                <CircleDot className="h-6 w-6 text-primary" />
-              ) : currentStep === 'complete' && steps.findIndex(s => s.id === currentStep) >= i ? (
-                <CheckCircle2 className="h-6 w-6 text-primary" />
+                <CircleDot className='h-6 w-6 text-primary' />
+              ) : currentStep === 'complete' &&
+                steps.findIndex((s) => s.id === currentStep) >= i ? (
+                <CheckCircle2 className='h-6 w-6 text-primary' />
               ) : (
-                <Circle className="h-6 w-6 text-muted-foreground" />
+                <Circle className='h-6 w-6 text-muted-foreground' />
               )}
-              <span className={cn(
-                "text-sm mt-2",
-                currentStep === step.id ? "text-primary font-medium" : "text-muted-foreground"
-              )}>
+              <span
+                className={cn(
+                  'text-sm mt-2',
+                  currentStep === step.id
+                    ? 'text-primary font-medium'
+                    : 'text-muted-foreground'
+                )}
+              >
                 {step.label}
               </span>
             </div>
             {i < steps.length - 1 && (
-              <div className="w-full mx-4 h-[2px] bg-border" />
+              <div className='w-full mx-4 h-[2px] bg-border' />
             )}
           </div>
         ))}
@@ -273,13 +398,15 @@ export function DomainOnboarding({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleAddDomain} className="space-y-4">
+              <form onSubmit={handleAddDomain} className='space-y-4'>
                 <Input
-                  placeholder="yourdomain.com"
+                  placeholder='yourdomain.com'
                   value={domainData.name}
-                  onChange={(e) => setDomainData(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) =>
+                    setDomainData((prev) => ({ ...prev, name: e.target.value }))
+                  }
                 />
-                <Button type="submit" disabled={loading}>
+                <Button type='submit' disabled={loading}>
                   {loading ? 'Generating Records...' : 'Continue'}
                 </Button>
               </form>
@@ -292,66 +419,65 @@ export function DomainOnboarding({
             <CardHeader>
               <CardTitle>Add DNS Records</CardTitle>
               <CardDescription>
-                Add these records to your domain&apos;s DNS settings. This usually can be done in your domain registrar&apos;s dashboard (e.g., GoDaddy, Namecheap, Route53).
+                Add these records to your domain&apos;s DNS settings
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Host</TableHead>
-                      <TableHead>Value / Points to</TableHead>
-                      <TableHead>TTL</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {domainData.dnsRecords.map((record: DNSRecord, i) => (
-                      <TableRow key={i}>
-                        <TableCell>
-                          <Badge variant="outline">{record.type}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
-                            {record.host}
-                          </code>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="truncate max-w-[300px]">{record.value}</span>
-                            <CopyButton 
-                              value={record.value} 
-                              variant="outline" 
-                              size="sm" 
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell>{record.ttl}s</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+            <CardContent className='space-y-6'>
+              <DNSRecordsTable records={domainData.dnsRecords} />
 
               <Alert>
-                <Info className="h-4 w-4" />
+                <Info className='h-4 w-4' />
                 <AlertTitle>DNS Propagation</AlertTitle>
-                <AlertDescription>
-                  DNS changes can take up to 48 hours to propagate worldwide. However, it usually takes 15-30 minutes.
+                <AlertDescription className='space-y-4'>
+                  <p>
+                    DNS changes can take up to 48 hours to propagate worldwide.
+                    However, it usually takes 15-30 minutes.
+                  </p>
+                  <div className='flex flex-col space-y-2'>
+                    <p className='font-medium'>Common DNS providers:</p>
+                    <div className='flex flex-wrap gap-2'>
+                      {[
+                        {
+                          name: 'GoDaddy',
+                          url: 'https://dcc.godaddy.com/manage-dns',
+                        },
+                        {
+                          name: 'Namecheap',
+                          url: 'https://ap.www.namecheap.com/domains/domaincontrolpanel',
+                        },
+                        {
+                          name: 'Cloudflare',
+                          url: 'https://dash.cloudflare.com',
+                        },
+                        {
+                          name: 'Route53',
+                          url: 'https://console.aws.amazon.com/route53',
+                        },
+                      ].map((provider) => (
+                        <Button
+                          key={provider.name}
+                          variant='outline'
+                          size='sm'
+                          onClick={() => window.open(provider.url, '_blank')}
+                        >
+                          {provider.name}
+                          <ExternalLink className='ml-2 h-3 w-3' />
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                 </AlertDescription>
               </Alert>
 
-              <div className="flex justify-between">
-                <Button 
-                  variant="outline" 
+              <div className='flex justify-between'>
+                <Button
+                  variant='outline'
                   onClick={() => handleBack('input')}
                   disabled={loading}
                 >
                   Back
                 </Button>
-                <Button 
+                <Button
                   onClick={() => setCurrentStep('verify')}
                   disabled={loading}
                 >
@@ -366,30 +492,33 @@ export function DomainOnboarding({
           <>
             <CardHeader>
               <CardTitle>
-                {verificationStatus === 'Success' ? 'Domain Verified!' : 'Verifying Domain'}
+                {verificationStatus === 'Success'
+                  ? 'Domain Verified!'
+                  : 'Verifying Domain'}
               </CardTitle>
               <CardDescription>
-                {verificationStatus === 'Success' 
+                {verificationStatus === 'Success'
                   ? 'Your domain has been successfully verified'
-                  : 'We\'re verifying your domain ownership'
-                }
+                  : "We're verifying your domain ownership"}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col items-center justify-center p-6 space-y-4 text-center">
+            <CardContent className='space-y-6'>
+              <div className='flex flex-col items-center justify-center p-6 space-y-4 text-center'>
                 {verificationStatus === 'Success' ? (
                   <>
-                    <div className="h-16 w-16 rounded-full bg-green-500/10 flex items-center justify-center">
-                      <CheckCircle2 className="h-8 w-8 text-green-500" />
+                    <div className='h-16 w-16 rounded-full bg-green-500/10 flex items-center justify-center'>
+                      <CheckCircle2 className='h-8 w-8 text-green-500' />
                     </div>
                     <div>
-                      <p className="font-medium text-lg">Verification Complete!</p>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className='font-medium text-lg'>
+                        Verification Complete!
+                      </p>
+                      <p className='text-sm text-muted-foreground mt-1'>
                         You can now send emails from @{domainData.name}
                       </p>
                     </div>
-                    <Button 
-                      className="mt-4"
+                    <Button
+                      className='mt-4'
                       onClick={() => setCurrentStep('complete')}
                     >
                       Complete Setup
@@ -397,15 +526,17 @@ export function DomainOnboarding({
                   </>
                 ) : (
                   <>
-                    <div className="relative">
-                      <div className="h-16 w-16 animate-spin rounded-full border-b-2 border-primary"></div>
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                        <Mail className="h-6 w-6 text-muted-foreground" />
+                    <div className='relative'>
+                      <div className='h-16 w-16 animate-spin rounded-full border-b-2 border-primary'></div>
+                      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+                        <Mail className='h-6 w-6 text-muted-foreground' />
                       </div>
                     </div>
                     <div>
-                      <p className="font-medium">Waiting for DNS Verification</p>
-                      <p className="text-sm text-muted-foreground mt-1">
+                      <p className='font-medium'>
+                        Waiting for DNS Verification
+                      </p>
+                      <p className='text-sm text-muted-foreground mt-1'>
                         This usually takes 15-30 minutes
                       </p>
                     </div>
@@ -416,22 +547,23 @@ export function DomainOnboarding({
               {verificationStatus !== 'Success' && (
                 <>
                   <Alert>
-                    <Info className="h-4 w-4" />
+                    <Info className='h-4 w-4' />
                     <AlertTitle>Automatic Verification</AlertTitle>
                     <AlertDescription>
-                      We&apos;ll automatically detect when your domain is verified
+                      We&apos;ll automatically detect when your domain is
+                      verified
                     </AlertDescription>
                   </Alert>
 
-                  <div className="flex justify-between">
-                    <Button 
-                      variant="outline" 
+                  <div className='flex justify-between'>
+                    <Button
+                      variant='outline'
                       onClick={() => handleBack('records')}
                     >
                       Back to DNS Records
                     </Button>
-                    <Button 
-                      variant="outline"
+                    <Button
+                      variant='outline'
                       onClick={handleContinueInBackground}
                     >
                       Continue in Background
@@ -447,41 +579,37 @@ export function DomainOnboarding({
           <>
             <CardHeader>
               <CardTitle>Domain Verified!</CardTitle>
-              <CardDescription>
-                Your domain is ready to use
-              </CardDescription>
+              <CardDescription>Your domain is ready to use</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center gap-2 text-primary">
-                <CheckCircle2 className="h-5 w-5" />
+            <CardContent className='space-y-6'>
+              <div className='flex items-center gap-2 text-primary'>
+                <CheckCircle2 className='h-5 w-5' />
                 <span>You can now send emails from {domainData.name}</span>
               </div>
-              
-              <div className="space-y-4">
-                <div className="rounded-lg border p-4">
-                  <h3 className="font-medium mb-2">Send a test email</h3>
-                  <div className="space-y-4">
-                    <Input 
-                      placeholder="Enter recipient email"
-                      type="email"
+
+              <div className='space-y-4'>
+                <div className='rounded-lg border p-4'>
+                  <h3 className='font-medium mb-2'>Send a test email</h3>
+                  <div className='space-y-4'>
+                    <Input
+                      placeholder='Enter recipient email'
+                      type='email'
                       value={testEmail}
                       onChange={(e) => setTestEmail(e.target.value)}
                     />
-                    <div className="text-sm text-muted-foreground">
-                      We&apos;ll send a test email from noreply@{domainData.name}
+                    <div className='text-sm text-muted-foreground'>
+                      We&apos;ll send a test email from noreply@
+                      {domainData.name}
                     </div>
-                    <Button
-                      onClick={handleTestEmail}
-                      disabled={sendingTest}
-                    >
+                    <Button onClick={handleTestEmail} disabled={sendingTest}>
                       {sendingTest ? 'Sending...' : 'Send Test Email'}
                     </Button>
                   </div>
                 </div>
 
-                <div className="flex justify-between">
+                <div className='flex justify-between'>
                   <Button
-                    variant="outline"
+                    variant='outline'
                     onClick={() => router.push('/dashboard/settings')}
                   >
                     Back to Settings

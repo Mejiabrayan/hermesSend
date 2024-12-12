@@ -9,10 +9,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Trash, Copy } from "lucide-react";
-import { Contact } from "./columns";
+import { Tables } from "@/utils/database.types";
 
 interface DataTableRowActionsProps {
-  row: Row<Contact>;
+  row: Row<Tables<'contacts'>>;
 }
 
 export function DataTableRowActions({ row }: DataTableRowActionsProps) {

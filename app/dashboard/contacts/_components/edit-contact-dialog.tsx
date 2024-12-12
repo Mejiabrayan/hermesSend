@@ -60,7 +60,7 @@ export function EditContactDialog({
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to update contact',
+        description: error instanceof Error ? error.message : 'Failed to update contact',
         variant: 'destructive',
       });
     } finally {

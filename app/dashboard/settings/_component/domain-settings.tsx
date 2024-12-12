@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { verifyDomain } from '../domains/actions';
-import { Tables } from '@/utils/database.types';
 import {
   Table,
   TableBody,
@@ -18,6 +17,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { CopyButton } from "@/components/copy-button";
 import { useQuery } from '@tanstack/react-query';
+import { Database } from '@/utils/database.types';
+
+// Use the database type as base
+type DbDomain = Database['public']['Tables']['domains']['Row'];
 
 interface DNSRecord {
   type: string;
@@ -27,9 +30,10 @@ interface DNSRecord {
   description?: string;
 }
 
-type Domain = Tables<'domains'> & {
+// Extend the database type with parsed DNS records
+interface Domain extends Omit<DbDomain, 'dns_records'> {
   dns_records: DNSRecord[] | null;
-};
+}
 
 interface DomainSettingsProps {
   domains: Domain[];
@@ -45,7 +49,36 @@ export function DomainSettings({ domains: initialDomains }: DomainSettingsProps)
     queryFn: async () => {
       const response = await fetch('/api/domains');
       if (!response.ok) throw new Error('Failed to fetch domains');
-      return response.json();
+      const data = await response.json();
+      return data.map((domain: DbDomain) => {
+        let parsedDnsRecords: DNSRecord[] | null = null;
+        try {
+          if (domain.dns_records) {
+            const records = typeof domain.dns_records === 'string' 
+              ? JSON.parse(domain.dns_records) 
+              : domain.dns_records;
+              
+            // Validate that records is an array and each record has the required properties
+            if (Array.isArray(records) && records.every(record => 
+              typeof record === 'object' && record !== null &&
+              'type' in record && 'host' in record && 
+              'value' in record && 'ttl' in record
+            )) {
+              parsedDnsRecords = records as DNSRecord[];
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing DNS records:', error);
+        }
+        return {
+          ...domain,
+          dns_records: parsedDnsRecords,
+          // Ensure status is properly set
+          status: domain.dkim_verified && domain.spf_verified && domain.dmarc_verified 
+            ? 'verified' 
+            : domain.status
+        };
+      });
     },
     initialData: initialDomains,
     refetchInterval: 10000 // Check every 10 seconds
@@ -111,6 +144,7 @@ export function DomainSettings({ domains: initialDomains }: DomainSettingsProps)
                 <TableRow>
                   <TableHead>Domain</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Verification</TableHead>
                   <TableHead>DNS Records</TableHead>
                 </TableRow>
               </TableHeader>
@@ -124,6 +158,21 @@ export function DomainSettings({ domains: initialDomains }: DomainSettingsProps)
                       >
                         {domain.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={domain.dkim_verified ? 'default' : 'secondary'}>
+                            DKIM
+                          </Badge>
+                          <Badge variant={domain.spf_verified ? 'default' : 'secondary'}>
+                            SPF
+                          </Badge>
+                          <Badge variant={domain.dmarc_verified ? 'default' : 'secondary'}>
+                            DMARC
+                          </Badge>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
                       {domain.dns_records?.map((record, i) => (

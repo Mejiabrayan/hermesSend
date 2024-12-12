@@ -8,10 +8,10 @@ import { SendCampaignDialog } from './send-campaign-dialog';
 interface SendButtonProps {
   campaignId: string;
   campaignName: string;
-  recipientCount?: number;
+  recipientCount: number;
 }
 
-export function SendButton({ campaignId, campaignName, recipientCount = 0 }: SendButtonProps) {
+export function SendButton({ campaignId, campaignName, recipientCount }: SendButtonProps) {
   const [showSendDialog, setShowSendDialog] = useState(false);
 
   return (
@@ -19,9 +19,11 @@ export function SendButton({ campaignId, campaignName, recipientCount = 0 }: Sen
       <Button
         size="sm"
         onClick={() => setShowSendDialog(true)}
+        disabled={recipientCount === 0}
+        title={recipientCount === 0 ? "Add recipients to send campaign" : "Send campaign"}
       >
         <Send className="w-4 h-4 mr-2" />
-        Send
+        Send {recipientCount > 0 && `(${recipientCount})`}
       </Button>
 
       <SendCampaignDialog
@@ -29,8 +31,7 @@ export function SendButton({ campaignId, campaignName, recipientCount = 0 }: Sen
         onOpenChangeAction={setShowSendDialog}
         campaignId={campaignId}
         campaignName={campaignName}
-        recipientCount={recipientCount}
       />
     </>
   );
-} 
+}

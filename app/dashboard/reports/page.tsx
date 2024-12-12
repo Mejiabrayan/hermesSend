@@ -2,10 +2,10 @@
 
 import { Card } from '@/components/ui/card';
 import { useQueryStates } from 'nuqs';
-import { parseAsString, parseAsInteger } from 'nuqs';
+import { parseAsString } from 'nuqs';
 
 export default function ReportsPage() {
-  const [{ timeframe, metric }] = useQueryStates({
+  const [{ }] = useQueryStates({
     timeframe: parseAsString.withDefault('7d'),
     metric: parseAsString.withDefault('engagement'),
   });

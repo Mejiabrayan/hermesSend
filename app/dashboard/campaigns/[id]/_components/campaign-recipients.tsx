@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 
 interface CampaignRecipientsProps {
-  campaignId: string;
   recipients: Array<{
     id: string;
     status: string;
@@ -24,7 +23,7 @@ interface CampaignRecipientsProps {
   }>;
 }
 
-export function CampaignRecipients({ campaignId, recipients }: CampaignRecipientsProps) {
+export function CampaignRecipients({ recipients }: CampaignRecipientsProps) {
   return (
     <div className="rounded-md border">
       <Table>

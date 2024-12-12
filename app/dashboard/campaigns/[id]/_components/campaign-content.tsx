@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CampaignAnalytics } from './campaign-analytics';
@@ -11,6 +11,9 @@ import { CampaignRecipients } from './campaign-recipients';
 import { CampaignWithSends } from '../types';
 import { getSupabaseBrowserClient } from '@/utils/supabase/client';
 import type { Database } from '@/utils/database.types';
+import { Button } from '@/components/ui/button';
+import { Pencil, X } from 'lucide-react';
+import { CampaignEditForm } from './campaign-edit-form';
 
 type AnalyticsData = {
   analytics: Database['public']['Tables']['campaign_analytics']['Row'][];
@@ -64,7 +67,8 @@ async function getAnalyticsData(id: string): Promise<AnalyticsData> {
 }
 
 export function CampaignContent({ campaignId }: { campaignId: string }) {
-  const { data: campaignData } = useQuery({
+  const [isEditing, setIsEditing] = useState(false);
+  const { data: campaignData, refetch } = useQuery({
     queryKey: ['campaign', campaignId],
     queryFn: () => getCampaignData(campaignId),
     staleTime: 1000 * 60,
@@ -103,6 +107,32 @@ export function CampaignContent({ campaignId }: { campaignId: string }) {
     })),
   };
 
+  if (isEditing) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-medium">Edit Campaign</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(false)}
+          >
+            <X className="h-4 w-4 mr-2" />
+            Cancel
+          </Button>
+        </div>
+        <CampaignEditForm
+          campaign={campaignData}
+          onCancelAction={() => setIsEditing(false)}
+          onSuccessAction={() => {
+            setIsEditing(false);
+            refetch();
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className='space-y-6'>
       <div className='flex items-center justify-between'>
@@ -113,6 +143,15 @@ export function CampaignContent({ campaignId }: { campaignId: string }) {
           </p>
         </div>
         <div className='flex items-center gap-4'>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
           {campaign.schedule_at && (
             <div className='text-sm text-muted-foreground'>
               Scheduled for: {format(new Date(campaign.schedule_at), 'PPp')}
@@ -142,7 +181,6 @@ export function CampaignContent({ campaignId }: { campaignId: string }) {
         <TabsContent value='recipients' className='space-y-4'>
           <Suspense fallback={<div>Loading recipients...</div>}>
             <CampaignRecipients
-              campaignId={campaignId}
               recipients={campaign.campaign_sends}
             />
           </Suspense>

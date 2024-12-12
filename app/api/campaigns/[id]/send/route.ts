@@ -2,9 +2,9 @@ import { createServer } from '@/utils/supabase/server';
 import { SESService } from '@/utils/email/ses-service';
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
-import { Tables } from '@/utils/database.types';
+import { Database } from '@/utils/database.types';
 
-type CampaignWithSends = Tables<'campaigns'> & {
+type CampaignWithSends = Database['public']['Tables']['campaigns']['Row'] & {
   campaign_sends: Array<{
     id: string;
     contact_id: string;
@@ -17,9 +17,10 @@ type CampaignWithSends = Tables<'campaigns'> & {
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const supabase = await createServer();
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -41,7 +42,7 @@ export async function POST(
           )
         )
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user.id)
       .single();
 

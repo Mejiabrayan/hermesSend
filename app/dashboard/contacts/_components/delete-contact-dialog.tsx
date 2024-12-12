@@ -49,7 +49,7 @@ export function DeleteContactDialog({
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to delete contact',
+        description: error instanceof Error ? error.message : 'Failed to delete contact',
         variant: 'destructive',
       });
     } finally {

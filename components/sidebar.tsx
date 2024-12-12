@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { signOutAction, getUserProfile } from '@/utils/actions';
-import { MoreVertical} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +21,10 @@ import {
   UsersIcon,
   AtSignIcon,
   ChartPieIcon,
+  EarthIcon,
+  GripIcon
 } from '@/components/ui/icons';
+import { MoreVertical } from 'lucide-react';
 
 const menuItems = [
   {
@@ -64,9 +66,19 @@ const menuItems = [
     label: 'Analytics',
     items: [
       {
-        label: 'Reports',
+        label: 'Analytics',
         icon: ChartPieIcon,
         href: '/dashboard/reports',
+      },
+    ],
+  },
+  {
+    label: 'Domain',
+    items: [
+      {
+        label: 'Domains',
+        icon: EarthIcon,
+        href: '/dashboard/domains',
       },
     ],
   },
@@ -142,21 +154,7 @@ export function Sidebar() {
       <div className='flex flex-col h-full'>
         <div className='flex items-center px-2 py-4'>
           <div className='flex items-center gap-2'>
-            <svg
-              className='w-6 h-6'
-              viewBox='0 0 24 24'
-              fill='none'
-              stroke='currentColor'
-              xmlns='http://www.w3.org/2000/svg'
-            >
-              {/* Hermes staff (caduceus) simplified icon */}
-              <path 
-                d='M12 3L12 21M8 6C8 6 12 9 16 6M8 18C8 18 12 15 16 18' 
-                strokeWidth='2' 
-                strokeLinecap='round' 
-                strokeLinejoin='round'
-              />
-            </svg>
+            <GripIcon />
             <span className='text-lg font-bold'>HermesSend</span>
           </div>
         </div>
