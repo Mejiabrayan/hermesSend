@@ -28,12 +28,20 @@ function NewCampaignForm() {
     shallow: true,
   });
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>, shouldSend = false) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const formData = new FormData(e.currentTarget);
+      const form = e.currentTarget instanceof HTMLFormElement 
+        ? e.currentTarget 
+        : e.currentTarget.closest('form');
+      
+      if (!form) {
+        throw new Error('Form not found');
+      }
+
+      const formData = new FormData(form);
       const response = await fetch('/api/campaigns', {
         method: 'POST',
         body: JSON.stringify({
@@ -41,6 +49,7 @@ function NewCampaignForm() {
           subject: formData.get('subject'),
           content,
           recipients: selectedRecipients,
+          sendImmediately: shouldSend,
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -54,8 +63,10 @@ function NewCampaignForm() {
       }
 
       toast({
-        title: 'Campaign created!',
-        description: 'Your campaign has been created successfully.',
+        title: shouldSend ? 'Campaign created and sent!' : 'Campaign created!',
+        description: shouldSend 
+          ? `Successfully sent to ${data.successfulSends} recipients`
+          : 'Your campaign has been created successfully.',
       });
 
       router.push('/dashboard/campaigns');
@@ -73,6 +84,8 @@ function NewCampaignForm() {
     }
   };
 
+  const canSend = selectedRecipients.length > 0 && content.trim().length > 0;
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center gap-4 mb-8">
@@ -89,7 +102,7 @@ function NewCampaignForm() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
         <Card>
           <CardContent className="pt-6">
             <div className="grid gap-4 max-w-xl">
@@ -123,8 +136,13 @@ function NewCampaignForm() {
                 </label>
                 <RecipientSelector
                   selectedRecipients={selectedRecipients}
-                  onRecipientsChange={setSelectedRecipients}
+                  onRecipientsChangeAction={setSelectedRecipients}
                 />
+                {selectedRecipients.length > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {selectedRecipients.length} recipients selected
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -163,9 +181,21 @@ function NewCampaignForm() {
           >
             <Link href="/dashboard/campaigns">Cancel</Link>
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button 
+            type="submit" 
+            variant="outline"
+            disabled={loading}
+          >
+            Save as Draft
+          </Button>
+          <Button 
+            type="button"
+            disabled={loading || !canSend}
+            onClick={(e) => handleSubmit(e, true)}
+            title={!canSend ? "Add content and recipients to send" : "Create and send campaign"}
+          >
             <Send className="w-4 h-4 mr-2" />
-            {loading ? 'Creating...' : 'Create Campaign'}
+            {loading ? 'Sending...' : 'Create & Send'}
           </Button>
         </div>
       </form>

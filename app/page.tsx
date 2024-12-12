@@ -16,17 +16,17 @@ export default async function Home() {
               stroke='currentColor'
               xmlns='http://www.w3.org/2000/svg'
             >
-              <path 
-                d='M12 3L12 21M8 6C8 6 12 9 16 6M8 18C8 18 12 15 16 18' 
-                strokeWidth='2' 
-                strokeLinecap='round' 
+              <path
+                d='M12 3L12 21M8 6C8 6 12 9 16 6M8 18C8 18 12 15 16 18'
+                strokeWidth='2'
+                strokeLinecap='round'
                 strokeLinejoin='round'
               />
             </svg>
             <span className='text-white font-bold'>HermesSend</span>
           </div>
           <div className='flex items-center gap-4'>
-            <Button variant="ghost" asChild>
+            <Button variant='ghost' asChild>
               <Link href='/sign-in'>Sign In</Link>
             </Button>
             <Button asChild>
@@ -44,14 +44,14 @@ export default async function Home() {
               Email Marketing Made Simple and Powerful
             </h1>
             <p className='mt-6 text-lg leading-8 text-zinc-400'>
-              Create, send, and track beautiful email campaigns in minutes. 
-              Get better engagement, higher conversions, and real-time analytics.
+              Create, send, and track beautiful email campaigns in minutes. Get
+              better engagement, higher conversions, and real-time analytics.
             </p>
             <div className='mt-10 flex items-center justify-center gap-x-6'>
               <Button asChild size='lg'>
                 <Link href='/sign-up'>Start for Free</Link>
               </Button>
-              <Button variant="ghost" asChild>
+              <Button variant='ghost' asChild>
                 <Link href='#features'>Learn More</Link>
               </Button>
             </div>
@@ -59,7 +59,7 @@ export default async function Home() {
         </div>
 
         {/* Features Section */}
-        <div id="features" className='py-24 sm:py-32'>
+        <div id='features' className='py-24 sm:py-32'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='mx-auto max-w-2xl text-center'>
               <h2 className='text-3xl font-bold tracking-tight text-white sm:text-4xl'>
@@ -74,8 +74,18 @@ export default async function Home() {
                 {/* Feature 1 */}
                 <div className='flex flex-col'>
                   <div className='mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-primary'>
-                    <svg className='h-6 w-6 text-white' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 6h16M4 12h16m-7 6h7' />
+                    <svg
+                      className='h-6 w-6 text-white'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M4 6h16M4 12h16m-7 6h7'
+                      />
                     </svg>
                   </div>
                   <div className='flex flex-auto flex-col'>
@@ -83,8 +93,8 @@ export default async function Home() {
                       Smart Campaign Builder
                     </h3>
                     <p className='mt-2 flex flex-auto text-base leading-7 text-zinc-400'>
-                      Create beautiful, responsive emails with our drag-and-drop editor. 
-                      No coding required.
+                      Create beautiful, responsive emails with our drag-and-drop
+                      editor. No coding required.
                     </p>
                   </div>
                 </div>
@@ -92,8 +102,18 @@ export default async function Home() {
                 {/* Feature 2 */}
                 <div className='flex flex-col'>
                   <div className='mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-primary'>
-                    <svg className='h-6 w-6 text-white' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' />
+                    <svg
+                      className='h-6 w-6 text-white'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
+                      />
                     </svg>
                   </div>
                   <div className='flex flex-auto flex-col'>
@@ -101,8 +121,8 @@ export default async function Home() {
                       Real-time Analytics
                     </h3>
                     <p className='mt-2 flex flex-auto text-base leading-7 text-zinc-400'>
-                      Track opens, clicks, and conversions in real-time. 
-                      Make data-driven decisions.
+                      Track opens, clicks, and conversions in real-time. Make
+                      data-driven decisions.
                     </p>
                   </div>
                 </div>
@@ -110,8 +130,18 @@ export default async function Home() {
                 {/* Feature 3 */}
                 <div className='flex flex-col'>
                   <div className='mb-6 flex h-10 w-10 items-center justify-center rounded-lg bg-primary'>
-                    <svg className='h-6 w-6 text-white' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    <svg
+                      className='h-6 w-6 text-white'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+                      />
                     </svg>
                   </div>
                   <div className='flex flex-auto flex-col'>
@@ -119,7 +149,7 @@ export default async function Home() {
                       Automation & Scheduling
                     </h3>
                     <p className='mt-2 flex flex-auto text-base leading-7 text-zinc-400'>
-                      Set it and forget it. Schedule campaigns and create 
+                      Set it and forget it. Schedule campaigns and create
                       automated email sequences.
                     </p>
                   </div>
@@ -130,14 +160,14 @@ export default async function Home() {
         </div>
 
         {/* Pricing Section */}
-        <div id="pricing" className='py-24 sm:py-32'>
+        <div id='pricing' className='py-24 sm:py-32'>
           <div className='mx-auto max-w-7xl px-6 lg:px-8'>
             <div className='mx-auto max-w-2xl text-center'>
               <h2 className='text-3xl font-bold tracking-tight text-white sm:text-4xl'>
                 Simple, Transparent Pricing
               </h2>
               <p className='mt-6 text-lg leading-8 text-zinc-400'>
-                Choose the plan that&apos;s right for you  
+                Choose the plan that&apos;s right for you
               </p>
             </div>
 
@@ -152,10 +182,17 @@ export default async function Home() {
                     Perfect for small businesses just getting started
                   </p>
                   <p className='mt-6 flex items-baseline gap-x-1'>
-                    <span className='text-4xl font-bold tracking-tight text-white'>$29</span>
-                    <span className='text-sm font-semibold leading-6 text-zinc-400'>/month</span>
+                    <span className='text-4xl font-bold tracking-tight text-white'>
+                      $29
+                    </span>
+                    <span className='text-sm font-semibold leading-6 text-zinc-400'>
+                      /month
+                    </span>
                   </p>
-                  <ul role='list' className='mt-8 space-y-3 text-sm leading-6 text-zinc-400'>
+                  <ul
+                    role='list'
+                    className='mt-8 space-y-3 text-sm leading-6 text-zinc-400'
+                  >
                     <li className='flex gap-x-3'>
                       <Check className='h-6 w-5 flex-none text-white' />
                       Up to 5,000 subscribers
@@ -185,10 +222,17 @@ export default async function Home() {
                     For growing businesses that need more features
                   </p>
                   <p className='mt-6 flex items-baseline gap-x-1'>
-                    <span className='text-4xl font-bold tracking-tight text-white'>$79</span>
-                    <span className='text-sm font-semibold leading-6 text-zinc-400'>/month</span>
+                    <span className='text-4xl font-bold tracking-tight text-white'>
+                      $79
+                    </span>
+                    <span className='text-sm font-semibold leading-6 text-zinc-400'>
+                      /month
+                    </span>
                   </p>
-                  <ul role='list' className='mt-8 space-y-3 text-sm leading-6 text-zinc-400'>
+                  <ul
+                    role='list'
+                    className='mt-8 space-y-3 text-sm leading-6 text-zinc-400'
+                  >
                     <li className='flex gap-x-3'>
                       <Check className='h-6 w-5 flex-none text-white' />
                       Up to 25,000 subscribers
@@ -218,9 +262,14 @@ export default async function Home() {
                     Custom solutions for large organizations
                   </p>
                   <p className='mt-6 flex items-baseline gap-x-1'>
-                    <span className='text-4xl font-bold tracking-tight text-white'>Custom</span>
+                    <span className='text-4xl font-bold tracking-tight text-white'>
+                      Custom
+                    </span>
                   </p>
-                  <ul role='list' className='mt-8 space-y-3 text-sm leading-6 text-zinc-400'>
+                  <ul
+                    role='list'
+                    className='mt-8 space-y-3 text-sm leading-6 text-zinc-400'
+                  >
                     <li className='flex gap-x-3'>
                       <Check className='h-6 w-5 flex-none text-white' />
                       Unlimited subscribers
@@ -235,23 +284,12 @@ export default async function Home() {
                     </li>
                   </ul>
                 </div>
-                <Button className='mt-8' variant="secondary" asChild>
+                <Button className='mt-8' variant='secondary' asChild>
                   <Link href='/contact-sales'>Contact Sales</Link>
                 </Button>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Background Effects */}
-        <div className='absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]'>
-          <div
-            className='relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-20 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]'
-            style={{
-              clipPath:
-                'polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)',
-            }}
-          />
         </div>
       </div>
     </div>

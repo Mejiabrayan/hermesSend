@@ -2,12 +2,14 @@ import { createServer } from '@/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { SESService } from '@/utils/email/ses-service';
 
 const createCampaignSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   subject: z.string().min(1, 'Subject is required'),
   content: z.string().min(1, 'Content is required'),
   recipients: z.array(z.string()),
+  sendImmediately: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -30,19 +32,21 @@ export async function POST(req: Request) {
       );
     }
 
+    const { sendImmediately, ...campaignData } = result.data;
+
     // Create campaign with all required fields
-    const campaignData = {
+    const campaign = {
       user_id: user.id,
-      name: result.data.name,
-      subject: result.data.subject,
-      content: result.data.content,
-      status: 'draft',
+      name: campaignData.name,
+      subject: campaignData.subject,
+      content: campaignData.content,
+      status: sendImmediately ? 'sending' : 'draft',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       sent_count: 0,
       opens_count: 0,
       clicks_count: 0,
-      total_recipients: result.data.recipients.length,
+      total_recipients: campaignData.recipients.length,
       deleted_at: null,
       completed_at: null,
       schedule_at: null,
@@ -50,9 +54,9 @@ export async function POST(req: Request) {
     };
 
     // Create campaign
-    const { data: campaign, error: campaignError } = await supabase
+    const { data: createdCampaign, error: campaignError } = await supabase
       .from('campaigns')
-      .insert(campaignData)
+      .insert(campaign)
       .select()
       .single();
 
@@ -62,9 +66,9 @@ export async function POST(req: Request) {
     }
 
     // Create campaign sends for recipients
-    if (result.data.recipients.length > 0) {
-      const campaignSends = result.data.recipients.map(contactId => ({
-        campaign_id: campaign.id,
+    if (campaignData.recipients.length > 0) {
+      const campaignSends = campaignData.recipients.map(contactId => ({
+        campaign_id: createdCampaign.id,
         contact_id: contactId,
         status: 'pending',
         created_at: new Date().toISOString(),
@@ -82,11 +86,61 @@ export async function POST(req: Request) {
       }
     }
 
+    // If sendImmediately is true, send the campaign
+    let sendResult;
+    if (sendImmediately) {
+      // Get contacts for the campaign
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('id, email')
+        .in('id', campaignData.recipients);
+
+      if (!contacts) {
+        throw new Error('Failed to fetch contacts');
+      }
+
+      // Send the campaign
+      sendResult = await SESService.sendCampaign({
+        recipients: contacts.map(c => ({ id: c.id, email: c.email })),
+        subject: campaignData.subject,
+        content: campaignData.content,
+        campaignId: createdCampaign.id,
+        userId: user.id
+      });
+
+      if (!sendResult.success) {
+        throw new Error(sendResult.error || 'Failed to send campaign');
+      }
+
+      // Update campaign status and campaign_sends
+      await Promise.all([
+        supabase
+          .from('campaigns')
+          .update({ 
+            status: 'sent',
+            sent_count: sendResult.successfulSends,
+            completed_at: new Date().toISOString()
+          })
+          .eq('id', createdCampaign.id),
+        supabase
+          .from('campaign_sends')
+          .update({ 
+            status: 'sent',
+            sent_at: new Date().toISOString()
+          })
+          .eq('campaign_id', createdCampaign.id)
+      ]);
+    }
+
     revalidatePath('/dashboard/campaigns');
     return NextResponse.json({ 
       success: true, 
-      campaign,
-      message: 'Campaign created successfully'
+      campaign: createdCampaign,
+      ...(sendResult && {
+        successfulSends: sendResult.successfulSends,
+        failedSends: sendResult.failedSends
+      }),
+      message: sendImmediately ? 'Campaign created and sent' : 'Campaign created successfully'
     });
 
   } catch (error) {

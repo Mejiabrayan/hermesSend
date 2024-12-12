@@ -3,14 +3,13 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 
 import { ReactQueryClientProvider } from '@/components/react-query-provider';
-import { NuqsAdapter } from 'nuqs/adapters/next/app'
-
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
   variable: '--font-geist-sans',
   weight: '100 900',
-});
+}); 
 const geistMono = localFont({
   src: './fonts/GeistMonoVF.woff',
   variable: '--font-geist-mono',
@@ -33,9 +32,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
       >
         <ReactQueryClientProvider>
-        <NuqsAdapter>{children}</NuqsAdapter>
-
-          </ReactQueryClientProvider>
+          <NuqsAdapter>{children}</NuqsAdapter>
+        </ReactQueryClientProvider>
       </body>
     </html>
   );
