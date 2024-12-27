@@ -68,7 +68,6 @@ export default async function Image() {
             padding: '40px',
           }}
         >
-          {/* Logo/Brand */}
           <div
             style={{
               fontSize: 32,

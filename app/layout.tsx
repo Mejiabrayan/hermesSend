@@ -5,11 +5,13 @@ import localFont from 'next/font/local';
 import { ReactQueryClientProvider } from '@/components/react-query-provider';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
+import { Analytics } from '@vercel/analytics/react';
+
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
   variable: '--font-geist-sans',
   weight: '100 900',
-}); 
+});
 const geistMono = localFont({
   src: './fonts/GeistMonoVF.woff',
   variable: '--font-geist-mono',
@@ -19,10 +21,18 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: {
     default: 'HermesSend - AWS SES Made Beautiful',
-    template: '%s | HermesSend'
+    template: '%s | HermesSend',
   },
-  description: 'All the reliability of Amazon SES with an interface you\'ll actually enjoy using. Create, send, and track emails without touching the AWS console.',
-  keywords: ['email marketing', 'AWS SES', 'email automation', 'email analytics', 'email campaigns', 'email infrastructure'],
+  description:
+    "All the reliability of Amazon SES with an interface you'll actually enjoy using. Create, send, and track emails without touching the AWS console.",
+  keywords: [
+    'email marketing',
+    'AWS SES',
+    'email automation',
+    'email analytics',
+    'email campaigns',
+    'email infrastructure',
+  ],
   authors: [{ name: 'HermesSend Team' }],
   creator: 'HermesSend',
   publisher: 'HermesSend',
@@ -36,7 +46,8 @@ export const metadata: Metadata = {
     url: 'https://hermessend.xyz',
     siteName: 'HermesSend',
     title: 'HermesSend - AWS SES Made Beautiful',
-    description: 'All the reliability of Amazon SES with an interface you\'ll actually enjoy using. Create, send, and track emails without touching the AWS console.',
+    description:
+      "All the reliability of Amazon SES with an interface you'll actually enjoy using. Create, send, and track emails without touching the AWS console.",
     images: [
       {
         url: '/og-image.jpg', // You'll need to add this image
@@ -49,7 +60,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'HermesSend - AWS SES Made Beautiful',
-    description: 'All the reliability of Amazon SES with an interface you\'ll actually enjoy using. Create, send, and track emails without touching the AWS console.',
+    description:
+      "All the reliability of Amazon SES with an interface you'll actually enjoy using. Create, send, and track emails without touching the AWS console.",
     images: ['/og-image.jpg'], // You'll need to add this image
     creator: '@hermessend', // Update with your Twitter handle
   },
@@ -78,6 +90,7 @@ export default function RootLayout({
       >
         <ReactQueryClientProvider>
           <NuqsAdapter>{children}</NuqsAdapter>
+          <Analytics />
         </ReactQueryClientProvider>
       </body>
     </html>
